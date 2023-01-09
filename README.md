@@ -27,8 +27,6 @@ This course is an introduction to database systems. Topics include database desi
 
 **Database Systems: The Complete Book** - by Hector Garcia-Molina, Jeffrey D. Ullman, and Jennifer D. Widom Prentice Hall, 2nd Edition, ISBN: 0131873253
 
-
-
 ## Assignments
 
 ## Course Evaluation
@@ -38,4 +36,6 @@ This course is an introduction to database systems. Topics include database desi
 - Final exam (55%)
 
 # Lecture 1
+
+## Entity - Relationship Model 
 

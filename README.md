@@ -35,7 +35,50 @@ This course is an introduction to database systems. Topics include database desi
 - Midterm (25%)
 - Final exam (55%)
 
-# Lecture 1
 
-## Entity - Relationship Model 
 
+# Chapter 1 - The Worlds of Database Systems
+
+# Chapter 2 - The Relational Database Modeling
+
+# Chapter 3 - Design Theory for Relational Databases
+
+# Chapter 4 - High-level Database Models
+
+# Chapter 5 - Algebraic and Logical Query Languages
+
+# Chapter 6 - The Database Language SQL
+
+# Chapter 7 - Constraints and triggers
+
+# Chapter 8 - Views and Indexes
+
+# Chapter 9 -SQL in a Server Environment
+
+# Chapter 10 - Advanced Topics in Relational Databases
+
+# Chapter 11 - The Semistructured-Data Model
+
+# Chapter 12 - Programming Languages for XML
+
+# Chapter 13 - Secondary Storage Management
+
+# Chapter 14 - Index Structures
+
+# Chapter 15 - Query Execution
+
+# Chapter 16 - The Query Compiler
+
+# Chapter 17 - Coping With System Failures
+
+# Chapter 18 - Concurrency Control
+
+# Chapter 19 - More Abou t Transaction Management
+
+# Chapter 20 - Parallel and Distributed Databases
+
+# Chapter 21 - Information Integration
+
+# Chapter 22 - Data Mining
+
+# Chapter 23 -  Database System s and the Internet

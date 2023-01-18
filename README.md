@@ -35,7 +35,44 @@ This course is an introduction to database systems. Topics include database desi
 - Midterm (25%)
 - Final exam (55%)
 
+## Lecture Slides
 
+[Lecture 0](assets/L0.pdf) - Entity-Relationship Model
+
+[Lecture 1](assets/L1.pdf) - From E/R Diagrams to Relations
+
+[Lecture 2](assets/L2.pdf) - SQL
+
+# Lecture 1
+
+## Entity-Relationship Model
+#### Database Design
+
+- Designing a database:
+
+  - what information the database must hold
+
+  - what relationships are there among components of that information
+
+- Notation for expressing designs: ***<u>Entity-Relationship (E/R) model</u>***
+
+![image-20230117202209098](C:\Users\the_d\Documents\GitHub\UVIC_CSC_370_Notes\assets\image-20230117202209098.png)
+
+#### Elements of the E/R Model
+
+| Name          | Description    |                                                              |
+| ------------- | -------------- | ------------------------------------------------------------ |
+| Entity Sets   | Green Square   | ![image-20230117202609151](C:\Users\the_d\Documents\GitHub\UVIC_CSC_370_Notes\assets\image-20230117202609151.png) |
+| Attributes    | White Circle   | ![image-20230117202621481](C:\Users\the_d\Documents\GitHub\UVIC_CSC_370_Notes\assets\image-20230117202621481.png) |
+| Relationships | Yellow Diamond | ![image-20230117202634462](C:\Users\the_d\Documents\GitHub\UVIC_CSC_370_Notes\assets\image-20230117202634462.png) |
+
+> Example:
+>
+> ![image-20230117202719533](C:\Users\the_d\Documents\GitHub\UVIC_CSC_370_Notes\assets\image-20230117202719533.png)
+
+# Lecture 2 
+
+# Lecture 3
 
 # Chapter 1 - The Worlds of Database Systems
 

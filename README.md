@@ -74,6 +74,12 @@ This course is an introduction to database systems. Topics include database desi
 
 # Lecture 3
 
+
+
+
+
+
+
 # Chapter 1 - The Worlds of Database Systems
 
 # Chapter 2 - The Relational Database Modeling

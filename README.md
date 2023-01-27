@@ -691,27 +691,290 @@ ALTER TABLE Stars DROP COLUMN phone;
 
 # Relational Algebra
 
+## Operations in the Relational Model
+
+- These operation can be expressed in an algebra, called **“relational algebra.”**
+- In this algebra, **relations** are the **operands** and we apply **operators** on them.
+
+## Operations
+
+Four Broad classes:
+
+#### Usual set opperations
+
+- **Union**
+- **Intersection**
+- **Difference**
+
+#### Operations that remove parts of a relation:
+
+- **Selection** - eliminates some rows(tuples)
+- **Projection** - eliminates some columns
+
+#### Operations that combine the tuples of two relations:
+
+- **Cartesian Product** - pairs tuples of two relations in all possible ways
+- **Join** - selectively pairs tuples from two relations
+
+#### An operation called **“renaming”**
+
+## Conditions for Set Operations on Relations
+
+We can apply union, intersection, difference- on relations R and S provided that:
+
+1. **R** and **S** must have schemas with identical sets of attributes.
+2. Before applying the operations, the columns of **R** and **S** must be ordered so that the order of attributes is the same for both relations.
+
+## Set Operations on Relations
+
+| Operation                                                    | Description                                                  |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| ![image-20230127150958362](assets/image-20230127150958362.png) | the **union** of **R** and **S**, is the set of tuples that are in **R** or **S** or both |
+| ![image-20230127151009749](assets/image-20230127151009749.png) | the **intersection** of **R** and **S**, is the set of tuples that are in both **R** and **S**. |
+| ![image-20230127151020227](assets/image-20230127151020227.png) | the **difference** of **R** and **S**, is the set of tuples that are in **R** but not in **S**. |
+
+> Note:  that R -  S is different from S - R.
+
+## Projection
+
+| Operation                                                    | Description                                                  |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| ![image-20230127151237942](assets/image-20230127151237942.png) | Produces from relation **R** a new relation that has only the A1, …, An columns of **R**. |
+
+#### Example
+
+![image-20230127151307478](assets/image-20230127151307478.png)
+
+| Title        | Year | Length | FilmType | Studioname | Producer# |
+| ------------ | ---- | ------ | -------- | ---------- | --------- |
+| Star wars    | 1977 | 124    | color    | Fox        | 12345     |
+| Mighty Ducks | 1991 | 104    | color    | Disney     | 67890     |
+| Waynes world | 1992 | 95     | color    | Paramount  | 99999     |
+
+We get:
+
+| Title        | Year | Length |
+| ------------ | ---- | ------ |
+| Star wars    | 1977 | 124    |
+| Mighty Ducks | 1991 | 104    |
+| Waynes World | 1992 | 95     |
+
+## Selection
+
+| Operation                                                    | Description                                                  |
+| ------------------------------------------------------------ | ------------------------------------------------------------ |
+| ![image-20230127151930224](assets/image-20230127151930224.png) | Produces a new relation with those tuples of R which satisfy condition C. |
+
+#### Example 1
+
+![image-20230127151959402](assets/image-20230127151959402.png)
+
+| Title        | Year | Length | Filmtype | Studioname | Producer# |
+| ------------ | ---- | ------ | -------- | ---------- | --------- |
+| Star Wars    | 1977 | 124    | color    | Fox        | 12345     |
+| Mighty Ducks | 1991 | 104    | color    | Disney     | 67890     |
+
+#### Example 2
+
+Suppose we want the movies by Fox which are at least 100 minutes long.
+
+![image-20230127152235110](assets/image-20230127152235110.png)
+
+Results in:
+
+| Title     | Year | Length | Filmtype | Studioname | Producer# |
+| --------- | ---- | ------ | -------- | ---------- | --------- |
+| Star Wars | 1977 | 124    | color    | Fox        | 12345     |
+
+## Cartesian Product
+
+| Operation                                                    | Description |
+| ------------------------------------------------------------ | ----------- |
+| ![image-20230127152526118](assets/image-20230127152526118.png) | See below   |
+
+1. Set of tuples **rs** that are formed by choosing the first part (**r**) to be any tuple of **R** and the second part (**s**) to be any tuple of **S**
+2. Schema for the resulting relation is the union of schemas for **R** and **S**.
+3. If **R** and **S** happen to have some attributes in common, then prefix those attributes by the relation name.
+
+#### Example
+
+R = 
+
+| A    | B    |
+| ---- | ---- |
+| 1    | 2    |
+| 3    | 4    |
+
+S = 
+
+| A    | C    | D    |
+| ---- | ---- | ---- |
+| 2    | 5    | 6    |
+| 4    | 7    | 8    |
+| 9    | 10   | 11   |
+
+R x S = 
+
+| A    | R.B  | S.B  | CD   | D    |
+| ---- | ---- | ---- | ---- | ---- |
+| 1    | 2    | 2    | 5    | 6    |
+| 1    | 2    | 4    | 7    | 8    |
+| 1    | 2    | 9    | 10   | 11   |
+| 3    | 4    | 2    | 5    | 6    |
+| 3    | 4    | 4    | 7    | 8    |
+| 3    | 4    | 9    | 10   | 11   |
 
 
 
+## Theta-Join
+
+![image-20230127153555837](assets/image-20230127153555837.png)
+
+- The result of this operation is constructed as follows: 
+
+  - a) Take the Cartesian product of **R** and **S**.
+  - b) Select from the product only those tuples that satisfy the condition **C**.
+
+- Schema for the result is the union of the schema of **R** and **S** with, “**R**” or “**S**” prefix as necessary.
+
+  
+
+  When the condition is equality, we call it “equijoin”.
+
+## Natural Join
+
+![image-20230127153726900](assets/image-20230127153726900.png)
+
+- Let **A1, A2,…,An** be the attributes in both the schema of **R** and the schema of **S**.
+- Then a tuple **r** from **R** and a tuple **s** from **S** are successfully paired if and only if **r** and **s** agree on each of the attributes **A1, A2, …, An.**
+
+#### Example
+
+The natural join of the relation R and S from previous example is:
+
+| A    | B    | C    | D    |
+| ---- | ---- | ---- | ---- |
+| 1    | 2    | 5    | 6    |
+| 3    | 4    | 7    | 8    |
+
+![image-20230127153931197](assets/image-20230127153931197.png)
+
+![image-20230127153946101](assets/image-20230127153946101.png)
+
+## Combing Operations to Form Queries
+
+#### Example 1
+
+Question: “What are the title and years of movies made by Fox that are at least 100 minutes long?”
+
+![image-20230127154213308](assets/image-20230127154213308.png)
+
+```sql
+SELECT title, year 
+FROM Movies 
+WHERE length>=100 AND studioName=‘Fox’;
+```
+
+#### Example 2
+
+Question: 
+
+- Consider two relations Movies and StarsIn
+
+- With schemas: 
+  - Movies(title, year, length, filmType, studioName) 
+  - StarsIn(title, year, starName)
+- Suppose we want to know: 
+  - “Find the stars of the movies that are at least 100 minutes long.”
+
+> Note: 
+>
+> First we join the two relations: Movies, StarsIn 
+>
+> Second we select movies with length at least 100 min. 
+>
+> Then we project onto starName.
+
+![image-20230127154409712](assets/image-20230127154409712.png)
+
+```sql
+SELECT starName 
+FROM Movies, StarsIn 
+WHERE Movies.title=StarsIn.title 
+AND Movies.year=StarsIn.year 
+AND length>=100;
+```
+
+#### Example 2 (Alternative Solution 1)
+
+![image-20230127154518310](assets/image-20230127154518310.png)
+
+```sql
+SELECT starName
+FROM Movies 
+JOIN StarsIn 
+ON Movies.title=StarsIn.title 
+AND Movies.year=StarsIn.year
+WHERE length>=100;
+```
+
+#### Example 2 (Alternative Solution 2)
+
+![image-20230127154616346](assets/image-20230127154616346.png)
+
+```sql
+SELECT starName 
+FROM Movies 
+JOIN StarsIn 
+USING (title, year) 
+WHERE length>=100;
+```
+
+OR (Less safe)
+
+```sql
+SELECT starName 
+FROM Movies 
+NATURAL JOIN StarsIn 
+WHERE length>=100;
+```
 
 
 
+## Renaming Operator
 
+![image-20230127154733032](assets/image-20230127154733032.png)
 
+- Resulting relation has exactly the same tuples as **R**, but the name of the relation is **S**.
+- Moreover, the attributes of the result relation **S** are named **A1, A2, …, An,** in order from the left.
 
+#### Problem
 
+Product(maker, model, type) 
 
+PC(model, speed, ram, hd, rd, price) 
 
+Laptop(model, speed, ram, hd, screen, price)
 
+Printer(model, color, type, price)
 
+![image-20230127155002689](assets/image-20230127155002689.png)
 
-
-
-
-
-
-
+> a) Which PC models have a speed of at least 1000?
+>
+> b) Which manufacturers make laptops with a hard disk of at least 30?
+>
+> c) Find the model number and price of all products (of any type) made by manufacturer B.
+>
+> d) Find the model numbers of all color laser printers. 
+>
+> e) Find those manufacturers that sell Laptops, but not PC's. 
+>
+> !f) Find those hard-disk sizes that occur in two or more PC's. 
+>
+> !g) Find those pairs of PC models that have both the same speed and RAM. A pair should be listed once.
+>
+> !!h)Find those manufacturers of at least two different computers (PC or Laptops) with speed of at least 700.
 
 
 

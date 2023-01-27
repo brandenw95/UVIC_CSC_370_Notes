@@ -194,6 +194,305 @@ Suppose that drinkers will only drink certain beers at certain bars.
 
 - Draw the modification to the E/R diagram.
 
+## Keys
+
+- A key (for an entity set) is a set of attributes such that no two entities are the same on all the attributes of the key.
+- In Entity-Relationship, we underline the key attribute(s).
+
+![image-20230127133829760](assets/image-20230127133829760.png)
+
+![image-20230127133916963](assets/image-20230127133916963.png)
+
+## Keys for Movies
+
+- Let’s consider the entity set **Movie**.
+- We might assume that the attribute title is a key. However, there can be different movies with the same name:
+  - “Godzilla” has several different versions (Japanese, American etc.).
+- If we **enforce** in the database a **key constraint** on attribute **title** of **Movie** class, then the DBMS will not allow us to insert information about different “Godzilla’s”.
+- A better choice is to take the set {title, year} of attributes as a key.
+  - We still run the risk that there are two movies made in the same year, with the same title, but that’s very unlikely.
+
+## Keys for Studios and Stars
+
+- For **Studios**:
+  - Reasonable to assume that there are no two studios having the **same name**.
+  - So, we will enforce **name** to serve as a **key**.
+- For **Stars**:
+  - We may think that the name can’t serve to distinguish two people, but…
+  - Yes! For stars the name distinguishes them since traditionally they choose “stage names”.
+  - So, again here, we will enforce **name** to serve as a **key.**
+
+## Surrogate Keys
+
+- Often, people introduce attributes whose role is to serve as a key for classes. 
+  - Companies assign employee ID’s to all employees, and these ID’s are carefully chosen to be unique numbers.
+  - In Canada everyone has a SIN. 
+  - Students ID’s in universities
+  - Driver’s license numbers
+  - Automobile registration numbers
+
+## Entity Sets Versus Attributes I
+
+> Example: (Bad Design)
+>
+> ![image-20230127134634380](assets/image-20230127134634380.png)
+>
+> 1. Repeats the manufacturer’s address once for each beer; 
+> 2. Loses the address if there are temporarily no beers for a manufacturer.
+
+## Entity Sets Versus Attributes II
+
+- An entity set should satisfy at least one of the following conditions:
+  - It is more than the name of something; it has at least one nonkey attribute.
+  - It is the “many” in a many-one or many-many relationship.
+
+> Example: (Good Design)
+>
+> ![image-20230127134805103](assets/image-20230127134805103.png)
+>
+> - Manfs deserves to be an entity set because of the nonkey attribute addr.
+> - Beers deserves to be an entity set because it is the “many” of the many-one relationship ManfBy.
+
+## Subclasses
+
+- Sometimes, a class (entity set) contains certain objects (entities) that have special properties not associated with all members of the class.
+
+![image-20230127134950426](assets/image-20230127134950426.png)
+
+## Inheritance in the Entity-Relationship Model
+
+- E/R entities have components in all subclasses to which they belong.
+
+> Example: 
+>
+> Roger Rabit, which is both a <u>cartoon</u> and <u>murder-mystery</u>
+>
+> - will have components in all three entity sets: **Movies**, **Cartoons**, **Murder-Mysteries**.
+> - i.e. it will have all four attributes of **Movies**, the attribute **weapon**, and finally will participate in the relationship **voices**.
+>
+> ![image-20230127135354873](assets/image-20230127135354873.png)
+
+## Keys for entity set Hierarchies
+
+- **Key of root is key for all.**
+  - Ex. **{title,year}** is the key for **Movies**, **Cartoons** and **Murder-Mysteries**.
+
+![image-20230127135520415](assets/image-20230127135520415.png)
+
+## Weak Entity Sets
+
+- Occasionally, entities of an entity set need “help” to identify them uniquely.
+- Entity set E is said to be weak if:
+  - in order to identify entities of E uniquely, we need to follow one or more many-one relationships from E and include the key of the related entities from the connected entity sets.
+
+> Example: Weak Entity Sets
+>
+> - **name** is almost a key for **football players**, but there might be two with the same name.
+> - **number** is certainly not a key, since players on two teams could have the same number.
+> - But **number**, together with the team **name** related to the player by **Plays-on** should be unique.
+
+## In Entity-Relationship Diagrams
+
+![image-20230127135820647](assets/image-20230127135820647.png)
+
+- Double diamond for **supporting** many-one relationship.
+- Double rectangle for the weak entity set.
+
+## Weak Entity-Set Rules
+
+- A weak entity set has one or more many-one relationships to other
+  (supporting) entity sets.
+  - Not every many-one relationship from a weak entity set need be supporting.
+  - But supporting relationships must have a rounded arrow (entity at the “one” end is guaranteed).
+- The key for a weak entity set is its own underlined attributes and the keys for the supporting entity sets.
+  - E.g., (player) **number** and (team) **name** is a key for **Players** in the previous example.
+
+# From Entity-Relationship Diagrams to Relations
+
+![image-20230127140305083](assets/image-20230127140305083.png)
+
+## Relations (or Tables) Terminology
+
+![image-20230127140343559](assets/image-20230127140343559.png)
+
+## Terminology
+
+Every attribute has an atomic type.
+
+- **Relation Schema:** relation name + attribute names + attribute types
+- **Relation instance:** a set of tuples. Only one copy of any tuple! 
+- **Database Schema:** a set of relation schemas. 
+- **Database instance**: a relation instance for every relation in the schema.
+
+## From Entity-Relationship Diagrams to Relations
+
+- **Entity sets** become relations with the same set of attributes.
+- **Many-Many Relationships** become relations whose attributes are only:
+  -  The keys of the connected entity sets.
+  - Attributes of the relationship itself.
+  - Sometimes attribute renaming needed to avoid name clashes.
+- **Many-One Relationships** usually don’t need separate tables.
+  - The key of the “one” side is included in the relation of the “many” side
+- **One-One Relationships** are similar.
+- **Ternary (or higher) relationships** need separate tables with keys of the participating entity sets. 
+  - The key is the union of keys of the “many” sides.
+
+#### Example 1: Entity Sets to Relations
+
+![image-20230127141019476](assets/image-20230127141019476.png)
+
+#### Example 2: With Attribute Renaming
+
+![image-20230127141131719](assets/image-20230127141131719.png)
+
+#### Example 3
+
+![image-20230127141152510](assets/image-20230127141152510.png)
+
+#### Example 4
+
+![image-20230127141249196](assets/image-20230127141249196.png)
+
+## Handling Weak Entity Sets
+
+- Relation for a weak entity set must include attributes for its complete key (including those belonging to other entity sets), as well as its own, nonkey attributes.
+- A supporting (double-diamond) relationship is redundant and yields no relation.
+
+#### Example 1
+
+![image-20230127141601499](assets/image-20230127141601499.png)
+
+#### Example 2
+
+![image-20230127141727036](assets/image-20230127141727036.png)
+
+#### Example 3
+
+![image-20230127141743337](assets/image-20230127141743337.png)
+
+#### Example 4
+
+![image-20230127141808194](assets/image-20230127141808194.png)
+
+#### Example 5 ("Isa")
+
+![image-20230127141844666](assets/image-20230127141844666.png)
+
+## The 00 Approach
+
+- Every subclass has its own relation.
+  - All the properties of that subclass, including all its inherited properties, are represented in this relation.
+
+> Example:
+>
+> Movies( title, year, length, filmType ) 
+>
+> Cartoons( title, year, length, filmType ) 
+>
+> MurderMysteries( title, year, length, filmType, weapon) 
+>
+> Cartoon-MurderMysteries( title, year, length, filmType, weapon) 
+>
+> Voices( title, year, starName )
+
+- Can we merge Cartoons with Movies?
+  - If we do, we lose information about which moves are cartoons.
+
+## Entity-Relationship Approach
+
+- We will have the following relations:
+  - Movies(title, year, length, filmType).
+  - MurderMystery(title, year, weapon).
+  - Cartoons(title, year).
+  - Voices(title, year, name).
+
+## Entity-Relationship approach - Remarks
+
+- No relation for class Cartoon-MurderMystery.
+- For a movie that is both, we obtain:
+  - its voices from the Voices relation
+  - its weapon from the MurderMystery relation
+  - and all other information from the Movies relation.
+- Relation Cartoons has a schema that is a subset of the schema for the relation Voices. *Should we eliminate the relation Cartoons?*
+- However there may be **silent** cartoons in our database. Those cartoons would have no voices and we would lose them.
+
+## Comparison of Approaches
+
+#### OO translation drawback:
+
+- Too many tables! Why?
+  - In the OO approach if we have a root and n children we need 2^n different tables!!!
+
+#### E/R translation drawback: 
+
+ We may have to look in several relations to gather information about a single object.
+
+- For example, if we want the length and weapon used for a murder mystery film, we have to look at Movies and MurderMysteries relations.
+
+#### OO translation advantage: 
+
+- The OO translation keeps all properties of an object together in one relation.
+
+#### E/R translation advantage: 
+
+- The E/R translation allows us to find in one relation tuples from all classes in the hierarchy.
+
+##### Comparison Examples
+
+- <u>What movies of 2009 were longer than 150 minutes?</u>
+  - Can be answered directly in the E/R approach.
+  - In the OO approach we have to examine all the relations.
+- <u>What weapons were used in cartoons of over 150 minutes in length?</u>
+  - More difficult in the E/R approach. 
+    - We should access Movies to find those of over 150 mins.
+    - Then, we have to access Cartoons to see if they are cartoons.
+    - Then we should access MurderMysteries to find the weapon.
+  - In OO approach we need only access the Cartoon-MyrderMysteries table.
+
+## Null Values to Combine Relations
+
+- If we are **allowed** to use **NULL** in tuples, we can handle a hierarchy of classes with a single relation.
+  - This relation has attributes for all the properties possessed by objects in any of the classes of the hierarchy.
+  - An object is represented by a single tuple. This tuple has NULL in each attribute corresponding to a property that does not belong to the object’s class.
+- If we apply this approach to the Movie hierarchy, we would create a single relation whose schema is:
+  - **Movie**(title, year, length, filmType, studioName, starName, voice, weapon) 
+    - “Who Framed Roger Rabbit?”, being both a cartoon and a murder-mystery, would be represented by several tuples that had no NULL’s.
+    - The Little Mermaid, being a cartoon but not a murder-mystery, would have NULL in the weapon component.
+- This approach allows us to find **all** the information about an object in one relation. Drawback?
+  - Depending on the data, there could be too many nulls.
+
+# SQL 
+
+
+
+# Relational Algebra
+
+Bags (not pure sets)
+
+{1,1,2,3}
+
+Bag union
+
+{1,2,1} U {1,1,2,3,1} = {1,1,1,1,1,2,2,3}
+
+(SELECT * FROM R) UNION (SELECT * FROM S)
+
+Bag Intersection
+
+{1,2,1}Intersection{1,1,2,3,1} = {1,1,2}
+
+(SELECT * FROM R) INTERSECTION (SELECT * FROM S)
+
+Bag Difference
+
+{1,2,1} - {1,1,2,3,1} = { } 
+
+{1,1,2,3,1} - {1,2,1} = {1, 3}
+
+## Extended algebra
+
+pi_L (Not just simple first, but also renaming and arithmetic operations)
+
 # Chapter 1 - The Worlds of Database Systems
 
 # Chapter 2 - The Relational Database Modeling

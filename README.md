@@ -976,9 +976,268 @@ Printer(model, color, type, price)
 >
 > !!h)Find those manufacturers of at least two different computers (PC or Laptops) with speed of at least 700.
 
+# Extended Relational Algebra
+
+## Bags
+
+> **Bag**
+>
+> Is like a set, but an element may appear more than once.
+>
+> Note: Multiset is another name for “bag.”
+
+Example:
+
+- {1,2,1,3} is a bag.
+- {1,2,3} is also a bag that happens to be a set.
+
+Bags also resemble lists, but order in a bag is unimportant.
+
+Example:
+
+- {1,2,1} = {1,1,2} as bags, but
+- [1,2,1] != [1,1,2] as lists.
+
+## Why Bags?
+
+- SQL is actually a bag language.
+- SQL will eliminate duplicates, but usually only if you ask it to do so explicitly
+  - except for **union, intersection**, and **difference** where the default is “set mode”.
+
+> Note: Union, intersection, and difference need new definitions for bags.
+
+## Bag Union
+
+An element appears in the union of two bags the sum of the number of times it appears in each bag
+
+> **Example:**
+>
+> {1,2,1} UNION {1,1,2,3,1} = {1,1,1,1,1,2,2,3}
+
+## Bag Intersection
+
+An element appears in the intersection of two bags the minimum of the number of times it appears in either.
+
+> Example:
+>
+> {1,2,1} INTERSECT {1,2,3} = {1,2}.
+
+## Bag Difference
+
+An element appears in difference A – B of bags as many times as it appears in A, minus the number of times it appears in B.
+
+- But never less than 0 times
+
+> Example:
+>
+> {1,2,1} – {1,2,3} = {1}
+
+## Union, Intersection, Difference in SQL
+
+> Note: Remember, we need to have the same schema for the relations that we union, intersect, or take difference.
+
+```sql
+(SELECT * FROM R) 
+UNION 
+(SELECT * FROM S);
+
+(SELECT * FROM R) 
+INTERSECT 
+(SELECT * FROM S);
+
+(SELECT * FROM R) 
+EXCEPT 
+(SELECT * FROM S);
+```
+
+- Add “ALL” for bag version of these operators.
+  - These are the only operators that work in ‘set mode’ by default.
+  - All the others work in ‘bag mode’ by default.
+
+## Extended Relational Algebra
+
+![image-20230128144654746](assets/image-20230128144654746.png)
+
+## Example: Duplicate Elimination
+
+![image-20230128144731640](assets/image-20230128144731640.png)
+
+- R1 consists of one copy of each tuple that appears in R2 one or more times.
+
+R =
+
+| A    | B    |
+| ---- | ---- |
+| 1    | 2    |
+| 3    | 4    |
+| 1    | 2    |
+
+1*(R) = 
+
+| A    | B    |
+| ---- | ---- |
+| 1    | 2    |
+| 3    | 4    |
+
+```SQL
+SELECT DISTINCT * FROM R;
+```
+
+## Sorting
+
+![image-20230128144939297](assets/image-20230128144939297.png)
+
+- L is a list of some of the attributes of R_2.
+- R1 is the list of tuples of R2 sorted first on the value of the first attribute on L, then on the second attribute of L, and so on.
+- the only operator whose result is neither a set nor a bag, but a **list**
+
+```sql
+SELECT * FROM R ORDER BY A, B;
+```
+
+## Example: Extended Projection
+
+![image-20230128145059285](assets/image-20230128145059285.png)
+
+## Aggregation Operators
+
+- They apply to entire columns of a table and produce a single result.
+- Most important examples:
+  - SUM
+  - AVG
+  - COUNT
+  - MIN
+  - MAX
+
+## Example: Aggregation
+
+R =
+
+| A    | B    |
+| ---- | ---- |
+| 1    | 3    |
+| 3    | 4    |
+| 3    | 2    |
+
+- SUM(A) = 7 
+- COUNT(A) = 3 
+- MAX(B) = 4 
+- MIN(B) = 2 
+- AVG(B) = 3
+
+```SQL
+SELECT SUM(A), COUNT(A), MAX(B), MIN(B), AVG(B) FROM R;
+```
 
 
-<hr>
+
+## Grouping Operator
+
+![image-20230128145300082](assets/image-20230128145300082.png)
+
+## Grouping Operator L(R) - Formally
+
+- Group relation R according to all the grouping attributes on list L.
+  - That is, form one group for each distinct list of values for those attributes in R.
+- Within each group, compute AGG(A) for each aggregation on list L.
+- Result has grouping attributes and aggregations as attributes.
+  - One tuple for each list of values for the grouping attributes and their group’s aggregations
+
+## Example: Grouping/Aggregation
+
+**StarsIn(title, year, starName)**
+
+> How many movies each star has starred in?
+>
+> ![image-20230128145447901](assets/image-20230128145447901.png)
+
+
+
+> What’s the earliest year each star has starred in some movie? 
+>
+> ![image-20230128145456980](assets/image-20230128145456980.png)
+
+
+
+> How many stars have starred in in each movie?
+>
+> ![image-20230128145507748](assets/image-20230128145507748.png)
+
+> For each star who has appeared in at least three movies give the earliest year in which he or she appeared.
+>
+> ![image-20230128145625723](assets/image-20230128145625723.png)
+>
+> Translating the previous RA expression to SQL:
+>
+> ```SQL
+> SELECT starName, miny 
+> FROM (SELECT starname, COUNT(title) AS cnt, 
+>       MIN(year) AS miny 
+>       FROM StarsIn 
+>       GROUP BY starname)
+> WHERE cnt>=3;
+> ```
+>
+> OR
+>
+> ```SQL
+> SELECT starname, MIN(year) AS miny 
+> FROM StarsIn 
+> GROUP BY starname 
+> HAVING COUNT(title)>=3;
+> ```
+>
+> 
+
+## Outerjoin
+
+**Motivation** 
+
+- Suppose we join R S.
+- A tuple of R which doesn't join with any tuple of S is said to be dangling.
+  - Similarly for a tuple of S.
+  - **Problem**: We loose dangling tuples.
+
+**Outerjoin** 
+
+- Preserves dangling tuples by padding them with NULL in the result.
+
+## Example: Outerjoin
+
+R = 
+
+| A    | B    |
+| ---- | ---- |
+| 1    | 2    |
+| 4    | 5    |
+
+S = 
+
+| A    | C    |
+| ---- | ---- |
+| 2    | 3    |
+| 6    | 7    |
+
+(1,2) joins with (2,3), but the other two tuples are dangling.
+
+R OUTRJOIN S = 
+
+| A    | B    | C    |
+| ---- | ---- | ---- |
+| 1    | 2    | 3    |
+| 4    | 5    | NULL |
+| NULL | 6    | 7    |
+
+```SQL
+SELECT * FROM R FULL OUTER JOIN S USING(B);
+```
+
+## Exercises
+
+![image-20230128150227383](assets/image-20230128150227383.png)
+
+
+
 
 # Chapter 1 - The Worlds of Database Systems
 

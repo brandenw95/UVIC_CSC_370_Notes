@@ -907,7 +907,7 @@ AND length>=100;
 
 #### Example 2 (Alternative Solution 1)
 
-![image-20230127154518310](assets/image-20230127154518310.png)
+<img src="assets/image-20230127154518310.png" alt="image-20230127154518310"  />
 
 ```sql
 SELECT starName

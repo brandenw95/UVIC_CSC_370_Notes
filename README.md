@@ -1236,7 +1236,85 @@ SELECT * FROM R FULL OUTER JOIN S USING(B);
 
 ![image-20230128150227383](assets/image-20230128150227383.png)
 
+# SQL Queries
 
+## Select-From-Where Statements
+
+## (Extended) Projection in SQL
+
+## WHERE in SQL
+
+## Selection in SQL
+
+## Patterns in WHERE
+
+## Ordering the Input
+
+## Products and Joins in SQL
+
+## Products and Joins in SQL
+
+## Natural Join
+
+## Natural Join with USING
+
+## Join with ON
+
+## Outer Joins
+
+## Example
+
+## Outerjoins: Students example (I)
+
+## Outerjoins: Students example (II)
+
+## Outerjoins: Students example (III)
+
+## Outerjoins: Students example (IV)
+
+## Outerjoins: Students example (V)
+
+## Outerjoins: Students example (VI)
+
+## Union/Intersection/Difference
+
+## Aliases
+
+## Aggregations
+
+## Eliminating Duplicates in an Aggregation
+
+## Not only in COUNT…
+
+## Grouping
+
+## Another Example
+
+## HAVING Clauses
+
+## Requirements on HAVING Conditions
+
+## Restriction on SELECT Lists With Aggregation
+
+## Illegal Query Example
+
+## Exercise
+
+## Correlated Subqueries
+
+## Another Solution (Nesting in FROM)
+
+## Views
+
+## Accessing a View
+
+## View on more than one relation
+
+## EXISTS / NOT EXISTS
+
+# NULLs in SQL
+
+# Database Modifications
 
 
 # Chapter 1 - The Worlds of Database Systems

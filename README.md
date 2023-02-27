@@ -1236,13 +1236,45 @@ SELECT * FROM R FULL OUTER JOIN S USING(B);
 
 ![image-20230128150227383](assets/image-20230128150227383.png)
 
-# SQL Queries
+# SQL Queries (sql2)
 
 ## Select-From-Where Statements
 
+Principal form of a query is:
+
+```sql
+SELECT desired attributes 
+FROM one or more tables
+WHERE condition about tuples of the tables
+```
+
+1. Begin with the relation in the FROM clause.
+2. Apply the selection indicated by the WHERE clause.
+3. Apply the projection indicated by the SELECT clause.
+
 ## (Extended) Projection in SQL
 
+```SQL
+SELECT title, length 
+FROM Movies 
+WHERE studioName = 'Disney';
+
+SELECT title AS name, length AS duration 
+FROM Movies 
+WHERE studioName = 'Disney';
+
+SELECT title AS name, length*0.016667 AS lenghtInHours 
+FROM Movies 
+WHERE studioName = 'Disney';
+
+SELECT title AS name, length/60.0 AS length, 'hrs.' AS inHours
+FROM Movies 
+WHERE studioName = 'Disney';
+```
+
 ## WHERE in SQL
+
+
 
 ## Selection in SQL
 
@@ -1312,53 +1344,15 @@ SELECT * FROM R FULL OUTER JOIN S USING(B);
 
 ## EXISTS / NOT EXISTS
 
-# NULLs in SQL
+# NULLs in SQL (sql3)
 
-# Database Modifications
+# Database Modifications (sql4)
+
+# Constraints (Primary Key, Unique, Foreign Key, Not Null)
+
+# Security and Authorization
+
+# Data Analysis with SQL
 
 
-# Chapter 1 - The Worlds of Database Systems
 
-# Chapter 2 - The Relational Database Modeling
-
-# Chapter 3 - Design Theory for Relational Databases
-
-# Chapter 4 - High-level Database Models
-
-# Chapter 5 - Algebraic and Logical Query Languages
-
-# Chapter 6 - The Database Language SQL
-
-# Chapter 7 - Constraints and triggers
-
-# Chapter 8 - Views and Indexes
-
-# Chapter 9 -SQL in a Server Environment
-
-# Chapter 10 - Advanced Topics in Relational Databases
-
-# Chapter 11 - The Semistructured-Data Model
-
-# Chapter 12 - Programming Languages for XML
-
-# Chapter 13 - Secondary Storage Management
-
-# Chapter 14 - Index Structures
-
-# Chapter 15 - Query Execution
-
-# Chapter 16 - The Query Compiler
-
-# Chapter 17 - Coping With System Failures
-
-# Chapter 18 - Concurrency Control
-
-# Chapter 19 - More Abou t Transaction Management
-
-# Chapter 20 - Parallel and Distributed Databases
-
-# Chapter 21 - Information Integration
-
-# Chapter 22 - Data Mining
-
-# Chapter 23 -  Database System s and the Internet

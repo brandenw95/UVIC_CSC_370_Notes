@@ -1274,85 +1274,1001 @@ WHERE studioName = 'Disney';
 
 ## WHERE in SQL
 
+Build expressions by using the operators:
+
+> =, <>, <,>,<=,>=
+
+- String constants are surrounded by **single quotes.**
+  - studioName = 'Disney'
+- Numeric constants are for e.g.: -12.34, 1.23E45
+- Boolean operators are: AND, OR, NOT.
+
+#### Example
+
+Which movies are made by Disney and aren't rated ‘G’?
+
+```sql
+SELECT title 
+FROM Movies
+WHERE (studioname = 'Disney') AND NOT (rating='G');
+```
+
 
 
 ## Selection in SQL
 
+#### Example
+
+Which Disney movies are after 1970 or have length greater than 90 mins?
+
+```SQL
+SELECT title 
+FROM Movies
+WHERE (year > 1970 OR length < 90) AND studioName='Disney';
+```
+
+> Note: Parenthesis are needed because the precedence of OR is less than that of AND.
+
 ## Patterns in WHERE
+
+- General Form:
+  - <Attribute> LIKE <pattern> 
+  - <Attribute> NOT LIKE <pattern>
+
+> <pattern> is a quoted string which may contain:
+>
+> - % = meaning “any string”
+> - _ = meaning “any character.”
+
+#### Example (Using patterns)
+
+Suppose we remember a movie “Princess something”.
+
+```SQL
+SELECT title 
+FROM Movies
+WHERE title LIKE '%Princess%';
+```
+
+or
+
+```SQL
+SELECT title 
+FROM Movies
+WHERE lower(title) LIKE '%princess%';
+```
 
 ## Ordering the Input
 
-## Products and Joins in SQL
+#### Example 1
+
+Find the Disney movies and list them by length, shortest first.
+
+```SQL
+SELECT * 
+FROM Movies 
+WHERE studioName = 'Disney' 
+ORDER BY length;
+```
+
+#### Example 2
+
+Find the Disney movies and list them by length, shortest first, and among movies of equal length, sort alphabetically.
+
+```SQL
+SELECT * 
+FROM Movies 
+WHERE studioName = 'Disney' 
+ORDER BY length, title;
+```
+
+> Note:
+>
+> - Ordering is ascending, unless you specify the DESC keyword after an attribute.
+> - Ties are broken by the second attribute on the ORDER BY list, etc.
 
 ## Products and Joins in SQL
+
+- SQL has a simple way to couple tables: list them in the FROM clause.
+  - All the tables in the FROM clause are coupled through Cartesian product
+  - Then we can put conditions in the WHERE clause in order to get the desired kind of join.
+
+#### Example 1
+
+We want to know the website of the studio of Pretty Woman.
+
+```SQL
+SELECT website 
+FROM Movies, Studios
+WHERE title = 'Pretty Woman' AND studioName=name;
+```
+
+#### Example 2
+
+We want to know the stars of Paramount movies.
+
+```SQL
+SELECT Stars.name, Stars.birthdate, Stars.birthplace 
+FROM Movies, Stars, StarsIn 
+WHERE studioname = 'Paramount' 
+	AND StarsIn.title = Movies.title 
+	AND StarsIn.year = Movies.year 
+	AND StarsIn.starName = Stars.name;
+```
+
+- When we involve **two or more tables** in a query, we can have attributes with the same name among these relations.
+  - **Solution:** We disambiguate by putting the name of the relation followed by a dot and then the name of the attribute.
 
 ## Natural Join
 
+```SQL
+SELECT * 
+FROM Movies NATURAL JOIN StarsIn;
+```
+
+Possible because the join attributes have the same name Almost the same as:
+
+```SQL
+SELECT * 
+FROM Movies, StarsIn 
+WHERE Movies.title=StarsIn.title 
+	AND Movies.year=StarsIn.year;
+```
+
 ## Natural Join with USING
+
+Better than NATURAL JOIN:
+
+```SQl
+SELECT * 
+FROM Movies 
+JOIN StarsIn USING (title,year);
+```
+
+Because now it is explicit which attributes are used to join the tables.
 
 ## Join with ON
 
+A similar result can be obtained by:
+
+```SQL
+SELECT * 
+FROM Movies 
+JOIN StarsIn ON Movies.title=StarsIn.title AND
+				Movies.year=StarsIn.year;
+```
+
+However, now we get two copies for title and year. This is exactly the same as:
+
+```SQL
+SELECT * 
+FROM Movies, StarsIn 
+WHERE Movies.title=StarsIn.title 
+AND Movies.year=StarsIn.year;
+```
+
 ## Outer Joins
 
-## Example
+```SQL
+SELECT * 
+FROM Movies 
+NATURAL FULL OUTER JOIN StarsIn;
+```
 
-## Outerjoins: Students example (I)
+```SQl
+SELECT * 
+FROM Movies 
+NATURAL LEFT OUTER JOIN StarsIn;
+```
 
-## Outerjoins: Students example (II)
+```SQL
+SELECT * 
+FROM Movies 
+NATURAL RIGHT OUTER JOIN StarsIn;
+```
 
-## Outerjoins: Students example (III)
+- One of LEFT, RIGHT, or FULL before OUTER (but not missing). 
+  - LEFT = pad dangling tuples of Movies only. 
+  - RIGHT = pad dangling tuples of StarsIn only. 
+  - FULL = pad both.
 
-## Outerjoins: Students example (IV)
+#### Example
 
-## Outerjoins: Students example (V)
+Compare:
 
-## Outerjoins: Students example (VI)
+```SQL
+SELECT * 
+FROM Movies JOIN Studios 
+	ON Movies.studioName = Studios.name;
+```
+
+```SQl
+SELECT * 
+FROM Movies LEFT OUTER JOIN Studios 
+	ON Movies.studioName = Studios.name;
+```
+
+## Outer joins: Students example (I)
+
+```SQl
+CREATE TABLE Fexam (stdid INT PRIMARY KEY, mark INT); 
+CREATE TABLE Assig ( stdid INT PRIMARY KEY, mark INT);
+
+INSERT INTO Fexam VALUES(1,60); 
+INSERT INTO Fexam VALUES(2,70); 
+INSERT INTO Fexam VALUES(3,80); 
+INSERT INTO Fexam VALUES(5,90);
+
+INSERT INTO Assig VALUES(1,30); 
+INSERT INTO Assig VALUES(3,40); 
+INSERT INTO Assig VALUES(4,50); 
+INSERT INTO Assig VALUES(5,60);
+```
+
+Suppose we want to join Fexam and Assig to get both marks for each student.
+
+## Outer joins: Students example (II)
+
+Suppose we start with:
+
+```SQl
+SELECT * FROM Fexam NATURAL JOIN Assig;
+```
+
+- Result? 
+  - Empty.
+- Why? 
+  - Attribute mark used too for the join. It shouldn’t .
+
+## Outer joins: Students example (III)
+
+```SQl
+SELECT * 
+FROM Fexam 
+JOIN Assig USING(stdid);
+```
+
+![image-20230228194400685](assets/image-20230228194400685.png)
+
+- Problem? 
+  - Not clear which mark is fexam mark, which is assig mark.
+
+## Outer joins: Students example (IV)
+
+```SQL
+SELECT stdid, Fexam.mark AS fmark, Assig.mark AS amark 
+FROM Fexam 
+JOIN Assig USING(stdid);
+```
+
+![image-20230228194504976](assets/image-20230228194504976.png)
+
+- Problem?
+  - Student 2 and 4 are lost.
+
+## Outer joins: Students example (V)
+
+```SQL
+SELECT stdid, Fexam.mark AS fmark, Assig.mark AS amark 
+FROM Fexam 
+FULL OUTER JOIN Assig USING(stdid);
+```
+
+![image-20230228194620060](assets/image-20230228194620060.png)
+
+## Outer joins: Students example (VI)
+
+```SQl
+SELECT Fexam.stdid, Fexam.mark AS fmark, Assig.mark AS amark 
+FROM Fexam 
+FULL OUTER JOIN Assig 
+ON Fexam.stdid=Assig.stdid;
+```
+
+![image-20230228194712299](assets/image-20230228194712299.png)
+
+- Why did we get NULL for stdid of this tuple here?
+
+  - Because that tuple has stdid=4 which is not in Fexam. Recall, we are printing Fexam.stdid We should change the query to:
+
+  - ```SQl
+    SELECT Fexam.stdid, Assig.stdid, Fexam.mark AS fmark, Assig.mark AS amark 
+    FROM Fexam 
+    FULL OUTER JOIN Assig 
+    ON Fexam.stdid=Assig.stdid;
+    ```
 
 ## Union/Intersection/Difference
 
+- Find the movies where either Richard Gere or Julia Roberts star. 
+- Find the movies where both Richard Gere and Julia Roberts star. 
+- Find the movies where Richard Gere stars but Julia Roberts doesn’t.
+
+```SQL
+SELECT title, year 
+FROM StarsIn 
+WHERE starName='Richard Gere' 
+UNION / INTERSECT / EXCEPT (use one of them depending on request)
+	SELECT title, year 
+	FROM StarsIn 
+	WHERE starName='Julia Roberts' ;
+```
+
 ## Aliases
+
+- Sometimes we need to ask a query that combines a table with itself. 
+  - We may list a table T as many times we want in the from clause but we need a way to refer to each occurrence of T.
+  - SQL allows us to define, for each occurrence in the FROM clause, an alias (which is called “tuple variable”).
+
+#### Example
+
+Find pairs of stars who have played together in the same movie.
+
+```SQl
+SELECT S1.starname, S2.starname 
+FROM StarsIn S1, StarsIn S2
+WHERE S1.title = S2.title 
+	AND S1.year = S2.year 
+	AND S1.starname < S2.starname;
+```
 
 ## Aggregations
 
+- SUM, AVG, COUNT, MIN, and MAX can be applied to a column in a SELECT clause to produce that aggregation on the column.
+
+#### Example
+
+Find the average length of movies from Disney.
+
+```SQl
+SELECT AVG(length) 
+FROM Movies
+WHERE studioName = 'Disney';
+```
+
 ## Eliminating Duplicates in an Aggregation
+
+- DISTINCT inside an aggregation causes duplicates to be eliminated before the aggregation.
+
+#### Example
+
+```SQL
+SELECT COUNT(DISTINCT studioName) 
+FROM Movies;
+```
+
+**This is not the same as:**
+
+```SQl
+SELECT DISTINCT COUNT(studioName) 
+FROM Movies;
+```
 
 ## Not only in COUNT…
 
+```SQL
+SELECT AVG(DISTINCT length) 
+FROM Movies 
+WHERE studioname = 'Disney';
+```
+
+- This will produce the average of only the distinct values for length.
+
 ## Grouping
+
+- What if we want to find the average movie length for each studio?
+- We may follow the query by **GROUP BY** and a list of attributes.
+- The result
+  - is grouped according to the values of all the listed attributes in GROUP BY, and
+  - any aggregation is applied only within each group.
+
+#### Example
+
+```SQL
+SELECT studioName, AVG(length) 
+FROM Movies 
+GROUP BY studioName;
+```
 
 ## Another Example
 
+From Movies and StarsIn, find the star’s total length of film played.
+
+```SQL
+SELECT starName, SUM(length) 
+FROM Movies, StarsIn 
+WHERE Movies.title=StarsIn.title 
+AND Movies.year=StarsIn.year 
+GROUP BY starName;
+```
+
 ## HAVING Clauses
+
+HAVING <condition> may follow a GROUP BY clause.
+
+- If so, the condition applies to each group, and groups not satisfying the condition are eliminated.
+
+#### Example
+
+```SQL
+SELECT starName, SUM(length) 
+FROM Movies, StarsIn 
+WHERE Movies.title=StarsIn.title 
+AND Movies.year=StarsIn.year 
+GROUP BY starName;
+```
+
+Suppose we didn’t wish to include all the stars in our table of aggregated lengths. We want those stars that have at least one movie before 2000.
+
+```SQL
+SELECT starName, SUM(length) 
+FROM Movies, StarsIn 
+WHERE Movies.title=StarsIn.title 
+AND Movies.year=StarsIn.year 
+GROUP BY starName 
+HAVING MIN(StarsIn.year) < 2000;
+```
 
 ## Requirements on HAVING Conditions
 
+- These conditions may refer to any relation in the FROM clause.
+- They may refer to attributes of those relations, as long as the attribute makes sense within a group; i.e., it is either:
+  -  A grouping attribute, or 
+  - Aggregated attribute.
+
 ## Restriction on SELECT Lists With Aggregation
+
+- If any aggregation is used, then each element of the SELECT list must be either:
+  - Aggregated, or 
+  - An attribute on the GROUP BY list.
 
 ## Illegal Query Example
 
+- We might think we could find the shortest movie of Disney as:
+
+```SQL
+SELECT title, MIN(length) 
+FROM Movies 
+WHERE studioName = 'Disney';
+```
+
+But this query is illegal in SQL. Because **title** is neither aggregated nor on the GROUP BY list.
+
+Instead:
+
+```SQL
+SELECT title, length 
+FROM Movies 
+WHERE studioName = 'Disney' 
+AND length = (
+    SELECT MIN(length) 
+    FROM Movies 
+    WHERE studioName = 'Disney');
+```
+
 ## Exercise
+
+Using Movies, StarsIn, and Stars, find the star’s total length of film played.
+We are interested only in Canadian stars and who first appeared in a movie before 2000.
+
+```SQl
+SELECT starName, SUM(length) 
+FROM Movies, StarsIn, Stars 
+WHERE Movies.title=StarsIn.title 
+	AND Movies.year=StarsIn.year 
+	AND Stars.name=StarsIn.starName 
+	AND Stars.birthplace 
+	LIKE '%Canada%'
+GROUP BY starName 
+HAVING MIN(StarsIn.year) < 2000
+```
 
 ## Correlated Subqueries
 
+Suppose StarsIn table has an additional attribute “salary”
+
+> StarsIn(movie, movie, starName, salary)
+
+Now, find the stars who were paid for some movie more than the average salary for that movie.
+
+```SQL
+SELECT starName, title, year 
+FROM StarsIn X 
+WHERE salary > (
+    SELECT AVG(salary) 
+    FROM StarsIn 
+    WHERE title = X.title 
+    AND year=X.year);
+```
+
+Semantically, the value of the X tuple changes in the outer query, so the database must rerun the subquery for each X tuple.
+
 ## Another Solution (Nesting in FROM)
+
+```SQL
+SELECT X.starName, X.title, X.year 
+FROM StarsIn X, (
+    SELECT title, year, AVG(salary) AS avgSalary 
+    FROM StarsIn 
+    GROUP BY title, year) Y
+WHERE X.salary>Y.avgSalary 
+	AND X.title=Y.title 
+	AND X.year=Y.year;
+```
 
 ## Views
 
+- A view is a “virtual table”, a relation that is defined in terms of the contents of other tables and views.
+- In contrast, a relation whose value is really stored in the database is called a base table.
+
+#### Example 
+
+```SQL
+CREATE VIEW DMovies AS 
+	SELECT title, year, length, rating 
+	FROM Movies 
+	WHERE studioName = 'Disney';
+```
+
 ## Accessing a View
+
+Query a view as if it were a base table.
+
+#### Example 1
+
+```SQL
+SELECT title 
+FROM DMovies 
+WHERE year = 2021;
+```
+
+#### Example 2
+
+```SQL
+SELECT DISTINCT starName 
+FROM DMovies, StarsIn 
+WHERE DMovies.title = StarsIn.title 
+AND DMovies.year = StarsIn.year;
+```
 
 ## View on more than one relation
 
+```SQL
+CREATE VIEW MovieStar AS 
+	SELECT title, year, studioName, starName 
+	FROM Movies 
+	JOIN StarsIn USING (title,year);
+```
+
+For each star that has more than two movies with Paramount, find how many movies he/she has with Fox.
+
+```SQL
+CREATE VIEW ParamountStars2 AS 
+	SELECT starName 
+	FROM MovieStar 
+	WHERE studioName='Paramount' 
+	GROUP BY starName 
+	HAVING COUNT(title)>=2;
+```
+
+```SQL
+CREATE VIEW FoxStars AS 
+	SELECT * 
+	FROM MovieStar 
+	WHERE studioName='Fox';
+```
+
+```sql
+SELECT starName, COUNT(title) 
+FROM ParamountStars2 
+NATURAL LEFT OUTER JOIN FoxStars 
+GROUP BY starName;
+```
+
 ## EXISTS / NOT EXISTS
+
+Find the stars who have worked for every studio.
+
+```SQL
+SELECT DISTINCT starName 
+FROM MovieStar X 
+WHERE NOT EXISTS ( 
+    SELECT name 
+    FROM Studios 
+    EXCEPT
+SELECT studioName 
+    FROM MovieStar 
+    WHERE starName = X.starName);
+```
+
+Find the stars who have worked for Disney but no other studio.
+
+```SQL
+SELECT starName 
+FROM MovieStar X 
+WHERE X.studioName='Disney' AND NOT EXISTS ( 
+    SELECT * 
+    FROM MovieStar 
+    WHERE starName=X.starName 
+    AND studioName<>'Disney'
+);
+```
+
+Find the stars who have worked for only one studio.
+
+```SQL
+SELECT starName 
+FROM MovieStar X 
+WHERE NOT EXISTS ( 
+    SELECT * 
+    FROM MovieStar 
+    WHERE starName=X.starName 
+    AND studioName<>X.studioName
+);
+```
 
 # NULLs in SQL (sql3)
 
+## NULL Values
+
+- Tuples in relations can have NULL as a value for one or more components.
+  - Meaning depends on context. Two common cases: 
+    - Missing value: e.g., we know the length has some value, but we don’t know what it is.
+    - Inapplicable: e.g., the value of attribute spouse for an unmarried person.
+
+## Comparing NULL’s to Values
+
+- The logic of conditions in SQL is really 3-valued logic: 
+  - **TRUE**
+  - **FALSE**
+  - **UNKNOWN**.
+- When any value is compared to <u>NULL</u>, the truth value is **UNKNOWN**.
+- But a query only produces a tuple in the answer if its truth value for the WHERE clause is **TRUE** (not **FALSE** or **UNKNOWN**).
+
+## Three-Valued Logic
+
+- To understand how AND, OR, and NOT work in 3valued logic, think of 
+  - TRUE = 1, FALSE = 0, and UNKNOWN = ½.
+  - AND = MIN
+  - OR = MAX
+  - NOT(x) = 1-x
+
+#### Example
+
+```SQL
+TRUE AND (FALSE OR NOT(UNKNOWN)) = 
+	MIN(1, MAX(0, (1 - ½ ))) = 
+	MIN(1, MAX(0, ½ )) = MIN(1, ½ ) = ½.
+```
+
+## Surprising Example
+
+```SQL
+SELECT * 
+FROM Movies 
+WHERE length <=120 OR length > 120;
+```
+
+- Suppose that we have some NULL values in the length.
+- What’s the result?
+  - We will get all the movies with a known length. Those with a length of NULL will not be in the result
+
+## Checking for NULLs
+
+- Can’t meaningfully use = or <> 
+- Should use: 
+  - IS NULL 
+  - IS NOT NULL
+
+#### Example
+
+```SQL
+SELECT * 
+FROM Movies 
+WHERE length IS NOT NULL;
+```
+
+## NULL’s Ignored in Aggregation
+
+- NULL never contributes to a sum, average, or count, and can never be the minimum or maximum of a column.
+
+```SQL
+SELECT SUM(length) 
+FROM Movies;
+```
+
+- But if there are no non-NULL values in a column, then the result of the aggregation is NULL.
+
+## Example: Effect of NULL’s
+
+The number of movies from Disney.
+
+```SQL
+SELECT count(*) 
+FROM Movies 
+WHERE studioName = 'Disney';
+```
+
+The number of movies from Disney with a known length.
+
+```SQL
+SELECT count(length) 
+FROM Movies 
+WHERE studioName = 'Disney';
+```
+
 # Database Modifications (sql4)
+
+## Database Modifications
+
+- A modification command does not return a result as a query does, but it changes the database in some way.
+- There are three kinds of modifications: 
+  - **Insert** a tuple or tuples.
+  - **Delete** a tuple or tuples.
+  - **Update** the value(s) of an existing tuple or tuples.
+
+## Insertion
+
+- To insert a single tuple:
+
+```SQL
+INSERT INTO <relation> 
+VALUES ( <list of values> );
+```
+
+#### Example 
+
+Consider MovieExec(name, address, cert#, netWorth)
+
+```SQL
+INSERT INTO MovieExec 
+VALUES('Melanie Griffith', '34 Boston Blvd', 700, 300000);
+```
+
+## Specifying Attributes in INSERT
+
+- We may add to the relation name a list of attributes.
+
+```SQL
+INSERT INTO MovieExec(name, address, cert, netWorth) 
+VALUES('Melanie Griffith', NULL, 700, 3000000);
+```
+
+There are two reasons to do so: 
+
+1. We forget the standard order of attributes for the relation.
+
+2. We don’t have values for all attributes.
+
+## Inserting Many Tuples
+
+- We may insert the entire result of a query into a relation, using the form:
+
+```SQL
+INSERT INTO <relation>
+<query>;
+```
+
+**Example**
+
+```SQL
+CREATE TABLE DisneyMovies( 
+    name VARCHAR2(25), 
+    year INT
+);
+```
+
+```SQL
+INSERT INTO DisneyMovies 
+	SELECT title, year 
+	FROM Movie 
+	WHERE studioName = 'Disney';
+```
+
+## Deletion
+
+To delete tuples satisfying a condition from some relation:
+
+```SQL
+DELETE FROM <relation>
+WHERE <condition>;
+```
+
+**Example**
+
+- Delete from the Movie table the Disney’s movies:
+
+```SQL
+DELETE FROM Movie 
+WHERE studioName ='Disney';
+```
+
+## Example: Delete all Tuples
+
+- Make the relation Movie empty:
+
+```SQL
+DELETE FROM Movie;
+```
+
+- No WHERE clause needed here.
+
+## Updates
+
+To change certain attributes in certain tuples of a relation:
+
+```SQL
+UPDATE <relation> 
+SET <list of attribute assignments> 
+WHERE <condition on tuples>;
+```
+
+**Example**
+
+- Change the length of 'Godzilla' to 200.
+
+```SQL
+UPDATE Movies 
+SET length = 200 
+WHERE title = 'Godzilla';
+```
+
+## Another Example
+
+- Suppose that Tom Cruise’s movies have approximately 20 min of info before starting.
+- So, let’s take that 20 min off.
+
+```SQL
+UPDATE Movies 
+SET length = length - 20 
+WHERE (title, year) IN (
+    SELECT title, year 
+    FROM StarsIn 
+    WHERE starname = 'Tom Cruise');
+```
 
 # Constraints (Primary Key, Unique, Foreign Key, Not Null)
 
+## Primary Keys
+
+## NOT NULL
+
+## UNIQUE
+
+## Constraint names
+
+## Dropping/Adding Constraints
+
+## Listing constraints
+
+## Foreign key constraints
+
+## Longer syntax for foreign keys
+
+## Satisfying a Foreign key constraint
+
+## Foreign key constraints (cont.)
+
+## Chicken and egg
+
+## Some first attempt
+
+## However, inserting fails…
+
+## Deferrable Constraints
+
+## Initially Deferred / Initially Immediate
+
+## Successful Insertions
+
+## Dropping
+
+# Constraints (CHECK)
+
+## Check Constraints
+
+## Checking
+
+## Check Constraints (cont’d)
+
+## Writing Constraints Correctly
+
+## Exercise – mutually exclusive subclasses
+
+# Constraints (Enforcing business rules with views)
+
+## Updateable Views - WITH CHECK OPTION
+
+## Views with check option for specialized constraints
+
+## Another example: Cars
+
+## Another Example
+
+## Exercise – Hotel Stays
+
+## Exercise – Hotel Stays – Inserting
+
 # Security and Authorization
+
+## Introduction to DB Security
+
+## Access Controls
+
+## Discretionary Access Control
+
+## GRANT Command
+
+## Grant Examples I
+
+## Grant Examples II
+
+## Grant Examples III
+
+## Grant Examples IV
+
+## Grant Examples V
+
+## Role-Based Authorization
+
+## Revoke Examples
+
+## Privilege Descriptors
+
+## Authorization Graphs
+
+## Effects of Revocations I
+
+## Effects of Revocations II
+
+## Grant and Revoke on Views
+
+## Revoking REFERENCES privilege
+
+## The problem with DAC
+
+## Mandatory Access Control
+
+## Bell-LaPadula Model
+
+## Statistical Databases
 
 # Data Analysis with SQL
 
+## Example: Insert
 
+## Format
 
+## Extract info from date
+
+## Orders, Orderlines, Products
+
+## How do the number of orders and average order price vary by day of the year?
+
+## Chart
+
+## How many orders are placed on each day of the week?
+
+## How many orders are placed on each day of the week? – Horizontally
+
+## Has the number of orders by day of the week changed over the years?
+
+## Alternative + Excel Pivot
+
+## What is the number of orders by quarter of each year?
+
+## What is the product category of the most popular product during each month?
+
+## What is the frequency of each product in each month?
+
+## Results
+
+## What is the maximum frequency in each month?
+
+## Results
+
+## What is the product category of the most popular product during each month?
+
+## Results
+
+## Chart

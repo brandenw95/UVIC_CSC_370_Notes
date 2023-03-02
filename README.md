@@ -3152,7 +3152,155 @@ VALUES('RS6 Avant','Audi');
 >
 > TL;DR Goes against default naming convention
 
+## Old Midterm 1
 
+### Question 1
+
+Draw an E/R diagram that best represents the following stipulations about a library. Indicate keys, many-one relationships, isa relationships, and other features of E/R diagrams covered in class, as appropriate. 
+
+- Library items are books and journals, each having a call number, and date acquired.
+- Books have title, year, and (possibly multiple) authors. Journal items have name, and an issue number.
+- There are patrons who borrow library items. Patrons have name and id. 
+- For simplicity assume that only daily loans are allowed. Thus, loans have only a loan-date (but no due-date). A patron can borrow the same library item multiple times (at different dates).
+
+### Question 2
+
+Translate the following design into tables writing the appropriate CREATE TABLE statements for them. For the class hierarchy follow the E/R approach. Declare proper primary and foreign keys. Show a proper order for the table creations.
+
+> Note: You can abbreviate 
+>
+> CREATE TABLE by CT 
+>
+> PRIMARY KEY by PK 
+>
+> FOREIGN KEY by FK 
+>
+> REFERENCES by RF
+
+![image-20230301185611973](assets/image-20230301185611973.png)
+
+```SQl
+-- Answers:
+CREATE TABLE Depts ( 
+    name VARCHAR(20) PRIMARY KEY, 
+    addr VARCHAR(20)
+);
+
+CREATE TABLE People ( 
+    uid CHAR(10) PRIMARY KEY, 
+    name VARCHAR(20), 
+    dname VARCHAR(20) REFERENCES Depts(name)
+);
+
+CREATE TABLE Instructors ( 
+    uid CHAR(10) PRIMARY KEY REFERENCES People(uid), 
+    specialty VARCHAR(40)
+);
+
+CREATE TABLE Students ( 
+    uid CHAR(10) PRIMARY KEY REFERENCES People(uid), 
+    standing VARCHAR(30)
+);
+
+CREATE TABLE Courses ( 
+    cno CHAR(8) PRIMARY KEY, 
+    name VARCHAR(40), 
+    dname VARCHAR(20) REFERENCES Depts(name)
+);
+
+CREATE TABLE Offerings ( 
+    oid INT PRIMARY KEY, 
+    cno CHAR(8) REFERENCES Courses(cno), 
+    tname CHAR(6), 
+    uid CHAR(10) REFERENCES Instructors(uid)
+);
+
+CREATE TABLE Enrolled ( 
+    oid INT, uid CHAR(10) REFERENCES Students(uid), 
+    PRIMARY KEY(oid,uid)
+);
+
+INSERT INTO Depts VALUES('Comp.Sci.', 'ECS Bldg'); 
+INSERT INTO People VALUES('V111111111', 'Jon', 'Comp.Sci.'); 
+INSERT INTO People VALUES('V222222222', 'Ben', 'Comp.Sci.'); 
+INSERT INTO Instructors VALUES('V111111111', 'Hardware'); 
+INSERT INTO Students VALUES('V222222222', '3rd year'); 
+INSERT INTO Courses VALUES('CSC390', 'Hardware Systems', 'Comp.Sci.'); 
+INSERT INTO Offerings VALUES(1, 'CSC390', '201409', 'V111111111');
+INSERT INTO Enrolled VALUES(1, 'V222222222');
+```
+
+
+
+### Question 3
+
+Consider the following relations and their attributes.
+
+- Student(snum, sname, major, level, age) 
+- Class(cname, room) 
+- Enrolled(snum, cname) 
+- TimeSlot(tsid, day_of_week, start, end) 
+- MeetsAt(cname, tsid)
+
+The meaning of these relations is straightforward. For example, relation Enrolled connects students with classes. Relation MeetsAt connects classes with timeslots. A given class usually connects with more than one timeslot, e.g. CSC 370 connects with timeslots: e.g. (13, 'Tuesday', '10:30', '11:30'), (34, 'Wednesday', '10:30', '11:30'), (45, 'Friday', '10:30', '11:30'). Write SQL statements for the following questions.
+
+1. (3 pts) Print the level and the average age of C. Sci. students for that level, for each level.
+
+   ```SQl
+   SELECT lev, AVG(age) 
+   FROM Student 
+   WHERE major='CSC' 
+   GROUP BY lev;
+   ```
+
+2. (3 pts) For each student (snum), find the number of classes he or she is enrolled in. (Students with zero classes should be reported too.)
+
+   ```SQl
+   SELECT snum, COUNT(cname) 
+   FROM Student 
+   NATURAL LEFT OUTER JOIN Enrolled 
+   GROUP BY snum;
+   ```
+
+   
+
+3. (4 pts) Find the snum’s of students enrolled in classes with overlapping time slots. Observe that the start and end attributes of the timeslot tuples can be properly compared as strings (e.g. '09:30' < '10:30' < '13:00').
+
+```SQl
+CREATE VIEW AllInfo AS 
+	SELECT snum, day_of_week, tsid, st, en 
+	FROM Enrolled 
+	NATURAL JOIN Classes 
+	NATURAL JOIN TimeSlot 
+	NATURAL JOIN MeetsAt;
+	
+SELECT snum 
+FROM AllInfo X 
+WHERE EXISTS ( 
+    SELECT * 
+    FROM AllInfo 
+    WHERE snum=X.snum
+    AND tsid<>X.tsid 
+    AND day_of_week=X.day_of_week 
+    AND st <= X.st 
+    AND X.st<en
+);
+```
+
+or
+
+```SQL
+SELECT X.snum 
+FROM AllInfo X, AllInfo Y 
+WHERE Y.snum=X.snum 
+AND Y.tsid<>X.tsid 
+AND Y.day_of_week=X.day_of_week 
+AND Y.st <= X.st 
+AND X.st<Y.en
+);
+```
+
+![image-20230301190600933](assets/image-20230301190600933.png)
 
 # Security and Authorization (Security)
 

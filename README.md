@@ -3688,3 +3688,106 @@ AND X.st<Y.en
 
 ## Chart
 
+# Data Analysis with SQL Window Functions (sql_window)
+
+## Product – Order line – Orders
+
+## orders per month per category
+
+## WINDOW FUNCTIONS
+
+### First: Mix detail and aggregate information over window
+
+### Second: Extract what you want with enclosing query
+
+### Several levels of aggregations at once
+
+### …without window functions
+
+### Which are the top 10 months in terms of revenue for each category?
+
+#### Results (ROW_NUMBER)
+
+### Which are the top 10 months in terms of revenue for each category?
+
+#### Results (RANK)
+
+### Which are the top 10 months in terms of revenue for each category?
+
+#### Results (DENSE_RANK)
+
+# Storage Mechanics (storage)
+
+## Computer Quantities
+
+## Storage mechanics
+
+## A Brief History of Disk Drives
+
+## HDDs today
+
+## SSDs
+
+## Similarities
+
+## I/O model of computation
+
+## HDD USE CASE
+
+### Disks
+
+### Tracks and sectors
+
+### MEGATRON 747 Disk Parameters
+
+### Disk access time
+
+### Cause of rotational delay
+
+### MEGATRON 747 Timing Example
+
+### MIN time to read a 16,384-byte block
+
+### MAX time to read a 16,384-byte block
+
+### AVG time to read a 16,384-byte block
+
+### AVG time to read a 16,384-byte block
+
+### AVG time to read a 16,384-byte block
+
+### Writing and Modifying Blocks
+
+## SORTING IN EXTERNAL STORAGE
+
+### Using Secondary Storage Effectively
+
+### Merge Sort
+
+### TwoPhase, Multiway Merge Sort
+
+### Phase 1
+
+### Phase 2
+
+### Phase 2 in words
+
+### Real Life Example
+
+Analysis – Phase 1
+
+### Analysis – Phase 2
+
+### How Big Should Blocks Be?
+
+### Another example: Block Size = 512K
+
+### Reasons to limit the block size
+
+### How many records can we sort?
+
+### Sorting larger files
+
+### Toy example for 2PMMS
+
+### Toy Example

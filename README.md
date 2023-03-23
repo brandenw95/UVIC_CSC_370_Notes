@@ -3791,3 +3791,334 @@ AND X.st<Y.en
 ### Toy example for 2PMMS
 
 ### Toy Example
+
+# Transactions (Concurrency) - Controlling Concurrent Behavior
+
+## But what’s a transaction?
+
+- A **process** that reads or modifies the DB is called a **<u>transaction</u>**.
+  - Unit of execution of database operations.
+
+```SQL
+begin transaction;
+delete from product 
+where model in ( 
+    select model 
+    from pc 
+    where hd<500 );
+
+delete from pc 
+where hd < 500;
+
+commit;
+```
+
+## Another example of a transaction
+
+```python
+import psycopg2 
+
+try:
+	connection = psycopg2.connect(user="bob", password="bobpass", host="127.0.0.1", port="5432", database="csc370")
+    connection.autocommit = False cursor = connection.cursor() 
+    amount = 2500
+	query = """select balance from account where id = 624001562408""" cursor.execute(query) balance_account_A = 		cursor.fetchone()[0] balance_account_A -= amount
+    
+	# Withdraw from account A now sql_update_query = """Update account set balance = %s where id = 624001562408""" 	
+    cursor.execute(sql_update_query, (balance_account_A,))
+	
+    query = """select balance from account where id = 2236781258763""" cursor.execute(query)
+	balance_account_B = cursor.fetchone()[0] balance_account_B += amount
+	
+    # Credit to account B now sql_update_query = """Update account set balance = %s where id = 2236781258763""" 
+    cursor.execute(sql_update_query, (balance_account_B,))
+   
+	# commiting the transction to database 
+	connection.commit() 
+print("Transaction completed successfully ")
+
+except (Exception, psycopg2.DatabaseError) as error: 
+    print("Error in transaction, reverting all other operations of the transaction ", error) 
+    connection.rollback()
+```
+
+## SQL statements: COMMIT and ROLLBACK
+
+- **COMMIT** causes a transaction to **<u>complete</u>**.
+  - Its database modifications are now **permanent** in the database.
+- **ROLLBACK** causes a transaction to end, but by **<u>aborting</u>**. 
+  - **No effects** on the database.
+
+> **Failures** like division by 0 or a constraint violation can also **cause rollback**, even if the programmer does not request it.
+
+## Busy, busy, busy...
+
+- In production environments there could <u>many users.</u>
+- Consequently, it’s possible for <u>multiple transactions</u> to be submitted at approximately the same time.
+
+## Concurrent Transactions
+
+- If all transactions **were small,** we could just execute them on a **firstcome-first-served basis**.
+- However, many transactions are **complex** and **time consuming.**
+  - Executing those would make other queries **wait a long time** for a chance to execute.
+
+> So, in practice, DBMS may be running <u>many different transactions at about the same time.</u>
+
+- DMBS needs to keep processes from **troublesome interactions.**
+- Even when there is **no “failure,” several** transactions can interact to turn a 
+  - consistent state into an inconsistent state.
+
+## ACID Transactions
+
+- **ACID transactions** are: 
+
+  - <u>Atomic :</u> Whole transaction or none is done.
+
+  - <u>Consistent</u> : Database consistency preserved.
+
+  - <u>Isolated</u> : Appears to the user as if only their process executes.
+
+  - <u>Durable</u> : Effects of a process survive a crash.
+
+    
+
+> Optional: weaker forms of transactions are often supported as well.
+
+> **Isolated** 
+>
+> That is, even though actions of several transactions might be interleaved, the net effect is identical to executing all transactions one after another in some serial order.
+
+## Transactions and Schedules
+
+- A transaction can be considered at a low level to be a list of actions: 
+  - **read, write, commit, abort**
+- A schedule is a list of actions from a set of transactions. E.g.
+
+![image-20230323131807835](assets/image-20230323131807835.png)
+
+## Anomalies: Reading Uncommitted Data
+
+![image-20230323131824130](assets/image-20230323131824130.png)
+
+> Of course there would be no problem if we executed T1, then T2, or vice versa. (**Serial execution**)
+
+- T1 transfers $100 from A to B 
+- T2 increments both A and B by 1% (e.g. daily interest)
+- Problem with schedule above is that the bank didn’t pay interest on the $100 that was being transferred.
+
+## Anomalies: Unrepeatable Reads
+
+- Suppose A is the **number of copies** available for a book.
+- T1 and T2 both **place an order** for this book. First they **check availability** of the book.
+- Consider now the following scenario: 
+
+1. T1 checks whether A is greater than 1. *Suppose T1 sees (reads) value 1.*
+
+2. **T2 also reads A and sees 1.** 
+3. **T2 decrements A to 0.**
+4.  **T2 commits.**
+5. T1 tries to decrement A, which is now 0, and gets an error because some check constraint doesn’t allow it.
+
+- This situation can never arise in a serial execution of T1 and T2.
+
+## Anomalies: Overwriting uncommitted data
+
+- Suppose Larry and Harry are two employees, and their salaries must be kept the equal.
+- T1 sets their salaries to $2000 and 
+- T2 sets their salaries to $2100. 
+- Now consider the following schedule:
+
+![image-20230323132120446](assets/image-20230323132120446.png)
+
+- Unfortunately, Larry will be paid more than Harry.
+
+> Of course there would be no problem if we executed T1, then T2, or vice versa. (**Serial execution**)
+
+## Summarizing the Terminology
+
+- A **transaction** (model) is a sequence of r and w actions on database elements.
+- A **schedule** is a sequence of read/write actions performed by a collection of transactions.
+- **Serial Schedule** = All actions for each transaction are consecutive. <u>r1(A); w1(A); r1(B); w1(B);</u> *r2(A); w2(A); r2(B); w2(B); …*
+- **Serializable Schedule:** A schedule whose “effect” is equivalent to that of some serial schedule.
+
+>  We will introduce a **sufficient condition** for serializability.
+
+## Swaps and Conflicts
+
+> **conflict-serializable**
+>
+> A schedule is conflict-serializable if it can be converted into a serializable schedule with the **same effect** by a series of nonconflicting swaps of adjacent elements
+
+There is a conflict if one of these two conditions hold. 
+
+1. **A read and a write of the same X, or** 
+2. **Two writes of the same X**
+
+- Such actions conflict in general and may ***not*** be swapped in order. 
+- All other events (reads/writes) may be swapped without changing the **effect** of the schedule (on the DB).
+
+### Example
+
+![image-20230323132455588](assets/image-20230323132455588.png)
+
+## Serializability/precedence Graphs
+
+- Non-swappable pairs of actions represent potential conflicts between transactions. 
+  - Existence of non-swappable actions enforces an ordering on the transactions that contain these actions.
+
+- **Nodes**: transactions {T1,…,Tk} 
+- **Arcs**: There is an arc from Ti to Tj if they have conflicting access to the same database element X and Ti is first; – we write: Ti < Tj.
+
+## Precedence graphs
+
+![image-20230323132557543](assets/image-20230323132557543.png)
+
+- **If there is a cycle in the graph**
+  - Then, there is **<u>no</u>** serial schedule which is **conflict-equivalent** to S. 
+    - Each arc represents a requirement on the order of transactions in a conflict equivalent *serial schedule.*
+    - A cycle puts too many requirements on any *linear order* of transactions.
+- **If there is no cycle in the graph**
+  - Then any **topological order** of the graph suggests a conflict equivalent schedule.
+
+> **Note:** A topological ordering of a directed acyclic graph (DAG) is a linear ordering of its nodes in which *each node comes before all nodes to which it has outbound edges.*
+
+## Why the Precedence-Graph Test Works?
+
+Idea: if the precedence graph is acyclic, then we can (logically) swap actions to form a serial schedule.
+
+Given that the **precedence graph is acyclic**, there exists Ti in S such that there is no Tj in S that Ti depends on.
+
+- We can swap all actions of Ti to the front (of S).
+-  **(Actions of Ti)(Actions of the other n-1 transactions)** 
+- The **tail** is a precedence graph that is the same as the original without Ti, i.e. it has n-1 nodes.
+- Repeat for the tail.
+
+## Schedulers
+
+- A **scheduler** takes requests from transactions for reads and writes, and decides if it is “OK” to allow them to operate on DB or defer them until it is safe to do so.
+- **Real: a scheduler forwards a request if it cannot result in a violation of conflict-serializability.** 
+  - One approach is to use locks.
+
+## Lock Actions
+
+- Before reading or writing an element X, a transaction Ti **requests a lock** on X from the scheduler.
+- The scheduler can either **grant the lock** to Ti or make Ti **wait for the lock.**
+- If granted, Ti should eventually **unlock** (release the lock on) X.
+- Short hands:
+  - li(X) = “transaction Ti requests a lock on X”
+  - ui(X) = “Ti unlocks/releases the lock on X”
+
+## Validity of Locks
+
+- The use of locks must be proper in 2 senses: 
+
+  - **Consistency of Transactions:** 
+    - Read or write X only when hold a lock on X.
+      -  ri(X) or wi(X) must be preceded by some li(X) with no intervening ui(X).
+    - If Ti locks X, Ti must eventually unlock X. 
+      - Every li(X) must be followed by ui(X).
+
+  
+
+- **Legality of Schedules:**
+
+  - Two transactions may not lock the same element X without one having first released the lock. 
+    - A schedule with li(X) cannot have another lj(X) until ui(X) appears in between.
+
+## Legal Schedule Doesn’t Mean Serializable
+
+![image-20230323133213705](assets/image-20230323133213705.png)
+
+## Two Phase Locking
+
+There is a simple condition, which guarantees conflict-serializability: In every transaction, all lock requests (phase 1) precede all unlock requests (phase 2).
+
+![image-20230323133232829](assets/image-20230323133232829.png)
+
+## Why 2PL Works?
+
+> **Theorem.** 
+>
+> A legal schedule S of 2PL transactions is conflict-serializable.
+
+<u>Proof</u>
+
+**Terminology:**
+
+1. 2PL (Two-Phase Locking) Protocol: A concurrency control protocol ensuring conflict serializability. It has two phases, the growing phase and the shrinking phase. During the growing phase, a transaction may acquire locks but not release any. In the shrinking phase, a transaction may release locks but not acquire any new ones.
+2. Legal Schedule: A schedule that follows the rules of the 2PL protocol.
+3. Conflict-Serializable Schedule: A schedule that is equivalent to some serial schedule, where two schedules are conflict-equivalent if they have the same set of transactions and the order of conflicting operations is the same in both.
+
+**Inductive Proof:**
+
+Let's use induction on the number of transactions in the schedule S.
+
+**Base case (n = 1):**
+
+When there's only one transaction, the schedule is trivially serial, and thus conflict-serializable.
+
+**Inductive step:**
+
+Assume that for n transactions, a legal schedule S_n of 2PL transactions is conflict-serializable. We will now show that this property holds for n + 1 transactions.
+
+Consider a legal 2PL schedule S_{n+1} containing n+1 transactions. Let T_{n+1} be the last transaction in the schedule. Since S_{n+1} is a legal 2PL schedule, T_{n+1} locks all items it accesses during the growing phase and releases them during the shrinking phase. Moreover, no other transaction can access those items while they are locked by T_{n+1}.
+
+Now, let's remove T_{n+1} and its operations from S_{n+1}. The resulting schedule, S_n', has n transactions. Since we removed T_{n+1}, which follows the 2PL protocol, S_n' remains a legal 2PL schedule. By the induction hypothesis, S_n' is conflict-serializable.
+
+Next, we need to reintroduce T_{n+1} into S_n' to reconstruct the original schedule S_{n+1}. Since T_{n+1} follows the 2PL protocol, we can insert it into the serial order of S_n' transactions without violating any lock orders. The resulting schedule is serializable and equivalent to S_{n+1} since the order of conflicting operations is preserved.
+
+Thus, we have shown that for a legal schedule S_{n+1} of 2PL transactions, it is conflict-serializable. By induction, we have proved that a legal schedule S of 2PL transactions is conflict-serializable.
+
+## What should we lock?
+
+- The whole table or just single rows? What’s database object? What should be the locking granularity?
+
+```SQL
+SELECT min(year) 
+FROM Movies;
+```
+
+- What happens if we insert a new tuple with the smallest year?
+- **Phantom problem:** A transaction retrieves a collection of tuples twice and sees different results, even though it doesn’t modify those tuples itself.
+
+## Transaction support in SQL
+
+- SET TRANSACTION ISOLATION LEVEL X
+  - In JDBC: Connection.setTransactionIsolation (X) 
+  - Where X can be 
+    - SERIALIZABLE (Default)
+    - REPEATABLE READ 
+    - READ COMMITED
+    - READ UNCOMMITED
+
+**With a scheduler based on locks**: 
+
+- A **<u>SERIALIZABLE</u>** transaction obtains locks before reading and writing objects, including locks on sets (e.g. table) of objects that it requires to be unchangeable and holds them until the end, according to 2PL.
+- A **<u>REPEATABLE READ</u>** transaction sets the same locks as a SERIALIZABLE transaction, except that it doesn’t lock sets of objects, but only individual objects.
+- A **<u>READ COMMITED</u>** transaction T 
+  - obtains locks before writing objects and keeps them until the end. 
+  - obtains locks before reading values, then immediately releases them; (their effect is to ensure that the transaction that last modified the values is complete.)
+- Thus,
+  1. No value written by T is changed by any other transaction until T is completed.
+  2. T reads only the changes made by committed transactions. 
+  3. However, a value read by T may well be modified by another transaction (which eventually commits) while T is still in progress.
+- A **<u>READ UNCOMMITED</u>** transaction doesn’t obtain any lock at all. So, it can read data that is being modified. Such transactions are allowed to be READ ONLY only. So, such transaction doesn’t ask for any lock at all.
+
+## In Summary
+
+![image-20230323133938925](assets/image-20230323133938925.png)
+
+## Optional: Conflict-serializability vs serializability
+
+**Sufficient condition** for serializability but not **necessary**. 
+
+> Example
+>
+> **S1**: w1(Y); w1(X); w2(Y); w2(X); w3(X); -- This is serial 
+>
+> **S2**: w1(Y); w2(Y); w2(X); w1(X); w3(X);
+
+- S2 isn’t conflict serializable (why?), but it is serializable. It has the same effect as S1. 
+  - Intuitively, the values of X written by T1 and T2 have no effect, since T3 overwrites them.
+
+- However, databases can only ensure conflict-serializability

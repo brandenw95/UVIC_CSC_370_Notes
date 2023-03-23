@@ -4037,17 +4037,17 @@ There is a simple condition, which guarantees conflict-serializability: In every
 
 ## Why 2PL Works?
 
-> **Theorem.** 
->
-> A legal schedule S of 2PL transactions is conflict-serializable.
-
-<u>Proof</u>
-
 **Terminology:**
 
 1. 2PL (Two-Phase Locking) Protocol: A concurrency control protocol ensuring conflict serializability. It has two phases, the growing phase and the shrinking phase. During the growing phase, a transaction may acquire locks but not release any. In the shrinking phase, a transaction may release locks but not acquire any new ones.
 2. Legal Schedule: A schedule that follows the rules of the 2PL protocol.
 3. Conflict-Serializable Schedule: A schedule that is equivalent to some serial schedule, where two schedules are conflict-equivalent if they have the same set of transactions and the order of conflicting operations is the same in both.
+
+> **Theorem:**
+>
+> A legal schedule S of 2PL transactions is conflict-serializable.
+
+
 
 **Inductive Proof:**
 

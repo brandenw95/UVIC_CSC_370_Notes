@@ -4093,6 +4093,16 @@ Next, we need to reintroduce T_{n+1} into S_n' to reconstruct the original sched
 
 Thus, we have shown that for a legal schedule S_{n+1} of 2PL transactions, it is conflict-serializable. By induction, we have proved that a legal schedule S of 2PL transactions is conflict-serializable.
 
+> **Walk through of proof:**
+>
+> 1. Start with a single transaction (n=1) as the base case. Since there's only one transaction, the schedule is trivially serial and conflict-serializable.
+> 2. Assume that a legal schedule with n transactions (S_n) is conflict-serializable. This is the inductive hypothesis.
+> 3. Add a new transaction, T_{n+1}, to create a new legal schedule (S_{n+1}) with n+1 transactions. This transaction follows the 2PL protocol, locking and releasing items in the correct order.
+> 4. Temporarily remove T_{n+1} from S_{n+1} to create a new schedule (S_n') with n transactions. Since T_{n+1} followed the 2PL protocol, S_n' is also a legal 2PL schedule.
+> 5. Apply the inductive hypothesis to S_n', which states that S_n' is conflict-serializable.
+> 6. Reintroduce T_{n+1} into S_n' to reconstruct the original schedule (S_{n+1}). Due to the 2PL protocol, T_{n+1} can be inserted into the serial order of S_n' transactions without violating any lock orders. This results in a serializable schedule equivalent to S_{n+1}.
+> 7. By following this process, we have demonstrated that a legal schedule S_{n+1} of 2PL transactions is conflict-serializable. Through induction, we prove that any legal schedule S of 2PL transactions is conflict-serializable.
+
 ## What should we lock?
 
 - The whole table or just single rows? What’s database object? What should be the locking granularity?

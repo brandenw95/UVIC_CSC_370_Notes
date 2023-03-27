@@ -4156,3 +4156,110 @@ FROM Movies;
   - Intuitively, the values of X written by T1 and T2 have no effect, since T3 overwrites them.
 
 - However, databases can only ensure conflict-serializability
+
+# Types of Locks (Concurrency_lock_types)
+
+## Shared/Exclusive Locks
+
+- **Problem:** Simple locks <u>don’t not allow two readers of a DB element X at the same time.</u>
+- Multiple readers not a problem.
+- Shared lock sli(X)
+- Exclusive lock xli(X)
+
+|      | S    | X    |
+| ---- | ---- | ---- |
+| S    | yes  | no   |
+| X    | no   | no   |
+
+## Exercise
+
+> Ex. r1(A); r2(B); r3(C); r1(B); r2(C); r3(D); w1(A); w2(B); w3(C);
+
+| T1                | T2                | T3                 |
+| ----------------- | ----------------- | ------------------ |
+| xl(A); r1(A)      |                   |                    |
+|                   | xl(B); r2(B)      |                    |
+|                   |                   | xl(C); r3(C)       |
+| sl(B) denied      |                   |                    |
+|                   | sl(C) denied      |                    |
+|                   |                   | sl(D); r3(D); u(D) |
+|                   |                   | w3(C); u(C)        |
+|                   | sl(C); r2(C);     |                    |
+|                   | w2(B); u(B); u(C) |                    |
+| sl(B); r1(B);     |                   |                    |
+| w1(A); u(A); u(B) |                   |                    |
+
+## Upgrading Locks
+
+Instead of taking an exclusive lock immediately, a transaction can take **a shared lock on X, read X, and then upgrade the lock to exclusive so that it can write X.**
+
+> Upgrading Locks allows more concurrent operation:
+>
+> Had T1 asked for an exclusive lock on B before reading B, the request would have been denied, because T2 already has a shared lock on B.
+
+![image-20230327130833104](assets/image-20230327130833104.png)
+
+## Exercise
+
+> Ex. r1(A); r2(B); r3(C); r1(B); r2(C); r3(D); w1(A); w2(B); w3(C);
+
+| T1            | T2            | T3           |
+| ------------- | ------------- | ------------ |
+| sl(A); r1(A)  |               |              |
+|               | sl(B); r2(B)  |              |
+|               |               | sl(C); r3(C) |
+| sl(B); r1(B)  |               |              |
+|               | sl(C); r2(C)  |              |
+|               |               | sl(D); r3(D) |
+| xl(A); w1(A); |               |              |
+| u(A); u(B)    |               |              |
+|               | xl(B); w2(B); |              |
+|               | u(B); u(C)    |              |
+|               |               | xl(C);w3(C); |
+|               |               | u(C); u(D)   |
+
+## Possibility for Deadlocks
+
+> Ex. T1 and T2 each reads X and later writes X
+
+![image-20230327131057390](assets/image-20230327131057390.png)
+
+- **Problem:** when we allow upgrades, it is easy to get into a deadlock situation.
+
+## Solution: Update Locks
+
+- Update lock **uli(X).** 
+  - Only an update lock (not shared lock) can be upgraded to exclusive lock (if there are no shared locks anymore).
+  - A transaction that will read and later on write some element A, asks initially for an update lock on A, and then asks for an exclusive lock on A. Such a transaction doesn’t ask for a shared lock on A.
+- Legal schedules: 
+  - read action permitted when there is either a shared or update lock. 
+  - An update lock can be granted while there is a shared lock, but the scheduler will not grant a shared lock when there is an update lock.
+- 2PL condition: No transaction may have an sl(X), ul(X) or xl(X) after a u(Y).
+
+![image-20230327131229176](assets/image-20230327131229176.png)
+
+## Example
+
+| T1          | T2               | T3               |
+| ----------- | ---------------- | ---------------- |
+| sl(A); r(A) |                  |                  |
+|             | ul(A); r(A)      |                  |
+|             |                  | sl(A) **Denied** |
+|             | xl(A) **Denied** |                  |
+| u(A)        |                  |                  |
+|             | xl(A); w(A)      |                  |
+|             | u(A)             |                  |
+|             |                  | sl(A); r(A)      |
+|             |                  | u(A)             |
+
+
+
+## (No) Deadlock Example
+
+> T1 and T2 each read X and later write X.
+
+![image-20230327131410684](assets/image-20230327131410684.png)
+
+## Benefits of Upgrade Locks
+
+![image-20230327131425207](assets/image-20230327131425207.png)

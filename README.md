@@ -4278,79 +4278,292 @@ WHERE T.year=X.year AND T.cat=X.cat AND T.year=Y.year;
 
 ## Computer Quantities
 
+![image-20230328222810740](assets/image-20230328222810740.png)
+
 ## Storage mechanics
+
+- HDD, SSD: Which will reign supreme?
+
+![image-20230328222833287](assets/image-20230328222833287.png)
 
 ## A Brief History of Disk Drives
 
+IBM introduced it in 1956.
+
+- First HDD was the size of a car
+- Only had 3.75 megabytes of space.
+- It cost $300,000.
+
 ## HDDs today
+
+Today, one can buy an HDD with 10 TBs of storage.
+
+Although the amount of storage space has increased tremendously, the simple mechanism remains similar to the original design.
+
+Traditional HDD spins and rotates platters. A fixed arm that floats above reads and writes information onto the platters.
+
+A typical hard drive spins at either 5400 revolutions per minute (RPM) or 7200 RPM
 
 ## SSDs
 
+Solid State Drives have no moving parts. 
+
+Faster than HDDs for random access.
+
+Capacities. 
+
+Nimbus Data: ExaDrive DC100 at 100TB. 
+
+Typically, 4TB.
+
+Also very energy efficient.
+
 ## Similarities
 
+- Both of HDDs and SSDs will eventually crash.
+  - HDDs: have moving parts that will merely fail.
+  - SSDs: each time information is written on it, the more it becomes degraded.
+- Longevity for both HDDs and SDDs is almost identical. 
+  - HDDs last for about 6 years
+  - SSDs last for about 5-7 years.
+
 ## I/O model of computation
+
+Price 
+
+- Average cost of a 1TB HDD is about $40 – $50. 
+- A 1TB SSD will average about $250.
+- HDDs will still give you the most cost per bit of storage than SSDs.
+
+![image-20230328223124017](assets/image-20230328223124017.png)
+
+![image-20230328223145909](assets/image-20230328223145909.png)
+
+
+
+- **Block** is the smallest unit of read/write from/to external storage (disk).
+  -  Typical size: 16KB 
+  - Typical time for random access of a block in HDD: 11 ms 
+  - Typical time for sequential access of a block in HDD: 0.13 ms
+- I/O = read or write of a block is very expensive; 
+- 1,000,000 machine instructions in the time to do one random disk I/O.
 
 ## HDD USE CASE
 
 ### Disks
 
+![image-20230328223252632](assets/image-20230328223252632.png)
+
 ### Tracks and sectors
+
+- Surfaces covered with concentric tracks.
+  - Tracks at a common radius = cylinder. 
+    - Cylinder can be read quickly, no movement of heads.
+    - Typical: 216 = 65,536 cylinders
+- Tracks divided into sectors by gaps (approx. 10% of track). 
+  - Typical track: 256 sectors.
+  - Typical sector: 4096 bytes (4KB).
+- Sectors are grouped into blocks.
+  - Typical block: 16KB = 4 x 4096byte sectors.
+
+![image-20230328223404157](assets/image-20230328223404157.png)
 
 ### MEGATRON 747 Disk Parameters
 
+- 2^4 = 16 surfaces (8 platters).
+- 2^16 = 65,536 tracks per surface.
+- 2^8 = 256 sectors per track.
+- 2^12 = 4096 = 4KB per sector.
+
+Capacity = 24*216*28*212 = 240 = **1TB**
+
 ### Disk access time
+
+- **Latency of disk** (access time): Time to read/write a block.
+- Main components of access time are:
+  - **Seek time** = time to move heads to proper cylinder (track). 
+  - **Rotational delay** = time for desired block to come under head. 
+  - **Transfer time** = time during which the block passes under head.
 
 ### Cause of rotational delay
 
+![image-20230328223707899](assets/image-20230328223707899.png)
+
+> On average, the desired sector will be about half way around the circle when the heads arrive at the cylinder.
+
 ### MEGATRON 747 Timing Example
+
+- To move the head assembly between cylinders takes 
+  - **<u>1 ms</u>** to start and **stop**, plus 
+  - **<u>1 ms</u>** for every **4000** cylinders traveled.
+- Thus, moving from the innermost to the outermost track, a distance of 65,536 tracks, is about **17.38 ms.**
+- Disk rotates at **7200 rpm**; one rotation in **8.33 ms**
+- Gaps occupy 10% of the space around a track.
 
 ### MIN time to read a 16,384-byte block
 
+![image-20230328223902705](assets/image-20230328223902705.png)
+
 ### MAX time to read a 16,384-byte block
 
-### AVG time to read a 16,384-byte block
+- Worst-case latency is 17.38+8.33+0.13=25.84 ms
 
 ### AVG time to read a 16,384-byte block
 
+- **Transfer time** is always **0.13** milliseconds. 
+- **Average rotational delay** is the time to rotate disk **half way around**, or **4.17** ms.
+- What about the **average seek time**?
+  - Is it just the time to move across **half the tracks**? 
+    - Yes, if the heads are at the outermost or innermost cylinder. 
+    - No, otherwise.
+
 ### AVG time to read a 16,384-byte block
+
+Average seek time
+
+- Assume the next request for a block to read will be at any of the 16,384 cylinders with equal probability.
+- If the heads are currently at cylinder 1 or cylinder 65,536, the average number of tracks to move is 8192 tracks (1/2 of the tracks)
+- If the heads are currently at middle cylinder, 8192, they are equally likely to move in or out, and either way, they will move on average about a quarter of the tracks, 4096 (1/4 of the tracks).
+- It can be shown that on average the heads need to move about **1/3 of the tracks.**
+
+### AVG time to read a 16,384-byte block
+
+![image-20230328224131359](assets/image-20230328224131359.png)
+
+![image-20230328224150328](assets/image-20230328224150328.png)
+
+![image-20230328224212161](assets/image-20230328224212161.png)
 
 ### Writing and Modifying Blocks
+
+- Writing same as reading, unless we verify written blocks.
+- “one I/O” = “one block read or write”
+- Modifying a block requires: 
+  - 1. Read the block into main memory.
+    2.  Modify the block there. 
+    3. Write the block back to disk.
 
 ## SORTING IN EXTERNAL STORAGE
 
 ### Using Secondary Storage Effectively
 
+- In most studies of algorithms, one assumes the “RAM model”: 
+  - Data is in main memory, 
+  - Access to any item of data takes as much time as any other.
+- When implementing a DBMS, one must assume that the **data does not fit in main memory.**
+- *Great advantage in choosing an algorithm that does few random disk accesses, even if the algorithm is not very efficient when viewed as a main memory algorithm.*
+
 ### Merge Sort
+
+- Merge = take two sorted lists and repeatedly chose the smaller of the “heads” of the lists (head = first of the unchosen). 
+  - Example: merge **1,3,4,8** with **2,5,7,9** = **1,2,3,4,5,7,8,9.**
+- Merge Sort based on recursive algorithm: divide records into two parts; recursively merge sort the parts, and merge the resulting lists.
+- Merge Sort in its original form is not very good in disk I/O model. 
+  - log2n passes, 
+  - so each record is read/written from disk log2n times. 
+  - E.g. if we have 10 million records, we need 23 passes.
 
 ### TwoPhase, Multiway Merge Sort
 
+- Secondary memory variant (2PMMS) operates in a small number of passes; 
+  - in one pass every record is read into main memory once and written out to disk once.
+- 2PMMS: 2 reads + 2 writes per block.
+
 ### Phase 1
+
+1. Fill main memory with records. 
+2. Sort using favorite main memory sort.
+3. Write sorted sublist to disk.
+4. Repeat until all records have been put into one of the sorted lists.
 
 ### Phase 2
 
+![image-20230328224828541](assets/image-20230328224828541.png)
+
 ### Phase 2 in words
+
+- Use one buffer for each of the sorted sublists and one buffer for an output block.
+- Initially load input buffers with the first blocks of their respective sorted lists.
+- Repeatedly run a competition among the first unchosen records of each of the buffered blocks.
+  - Move the record with the least key to the output block; it is now “chosen.”
+- Manage the buffers as needed: 
+  - If an input block is exhausted, get the next block from the same file.
+  - If the output block is full, write it to disk.
 
 ### Real Life Example
 
+![image-20230328224923576](assets/image-20230328224923576.png)
+
 ### Analysis – Phase 1
+
+![image-20230328224938231](assets/image-20230328224938231.png)
 
 ### Analysis – Phase 2
 
+- Each block holding records from one of the sorted lists is read from disk exactly once.
+  - Thus, the total number of block **reads** is 100,000 in the second phase, just as for the first.
+- Each record is placed once in an output block, and each of these blocks is written to disk once.
+  - Thus, the number of block **writes** in the second phase is also 100,000.
+- So, **second phase** takes another 37 minutes.
+- **Total: Phase 1 + Phase 2 = 74 minutes.**
+
 ### How Big Should Blocks Be?
+
+- We have assumed a 16K byte block in our analysis. 
+- Would a larger block size be advantageous?
+- If we doubled the size of blocks, we would halve the number of disk I/O's.
+- But, how much a disk I/O would cost in such a case?
+- Recall it takes 0.13 ms for transfer time of a 16K block and 10.63 ms for average seek time and rotational latency.
+- **Only the transfer time changes.** 
+- It increases to ***0.13*2=0.26 ms***, i.e. slightly more than before.
+- We would thus approximately halve the time the sort takes.
 
 ### Another example: Block Size = 512K
 
+![image-20230328225159255](assets/image-20230328225159255.png)
+
 ### Reasons to limit the block size
+
+1. Small tables would occupy only a fraction of a block, so large blocks would waste space on the disk.
+
+2. The larger the blocks are, the fewer records we can sort by 2PMMS (see next slide).
+
+> Nevertheless, as machines get more memory and disks more capacious, there is a tendency for block sizes to grow.
 
 ### How many records can we sort?
 
+1. Block size is B bytes. 
+2.  Main memory available for buffering blocks is M bytes.
+3. Record is R bytes.
+
+- Number of main memory buffers = M/B blocks
+- We need one output buffer, so we can actually use (M/B)-1 input buffers.
+- How many sorted sublists can we merge? • (M/B)-1.
+- What’s the total number of records we can sort?
+- Each time we fill in the memory with M/R records.
+- Hence, we are able to sort (M/R)*[(M/B)-1] or approximately M2/RB.
+
+> If we use the parameters in the example about 2PMMS we have: M=100MB = 100,000,000 Bytes = 108 Bytes (100*220 more precisely) *
+>
+> *B = 16,384 Bytes *
+>
+> *R = 160 Bytes *
+>
+> *So, M2/RB = (100*2^20)^2 / (160 * 16,384) = 4.2 billion records, or 2/3 of a TeraByte.
+
 ### Sorting larger files
 
-### Toy example for 2PMMS
+![image-20230328225418130](assets/image-20230328225418130.png)
+
+> or our example, the third phase let’s us sort 75 trillion records occupying 7500 Petabytes!!
+
+## Toy example for 2PMMS
 
 ### Toy Example
 
 
+
+![image-20230328225458613](assets/image-20230328225458613.png)
 
 # BTree Indexes (btrees)
 

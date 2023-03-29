@@ -4501,45 +4501,199 @@ WHERE studio='Disney' AND year = 2021;
 
 ## An SQL query and its RA equiv.
 
+**Employees** (sin INT, ename VARCHAR(20), rating INT, address VARCHAR(90)) 
+
+**Maintenances** (sin INT, planeId INT, day DATE, desc CHAR(120))
+
+```SQL
+SELECT ename 
+FROM Employees NATURAL JOIN Maintenances 
+WHERE planeId = 100 AND rating > 5;
+```
+
+![image-20230328220005948](assets/image-20230328220005948.png)
+
 ## Query Optimization
+
+- SQL queries are translated into RA.
+- Query evaluation plans are represented as **trees of relational operators** 
+  - with labels identifying the algorithm to use at each node.
+- **Initial trees** can be transformed to **"better" trees.**
+  - Process of finding **good evaluation plans** is called query optimization.
 
 ## Running Example – Airline
 
+**Employees** (sin INT, ename VARCHAR(20), rating INT, address VARCHAR(90)) 
+
+**Maintenances** (sin INT, planeId INT, day DATE, desc CHAR(120))
+
+- Assume for **Maintenances**:
+  - A tuple is 160 bytes 
+  - A block can hold 100 tuples (16K block)
+  - We have 1000 blocks of such tuples.
+- Assume for **Employees**: 
+  - a tuple is 130 bytes
+  - a block can hold 120 tuples
+  - we have 50 blocks of such tuples.
+
 ## Algorithms for selection
+
+![image-20230328220645344](assets/image-20230328220645344.png)
+
+- if no index on R.attr, just scan R. 
+  - On average half the number of blocks R is occupying.
+    - E.g. if R is Maintenances, there will be 1000/2 block reads (I/Os).
+- If there is an index on R.attr, **use the index.** 
+  - Typically 3 disk accesses
+    - Assuming non-clustering B-Tree with 3 levels, with the root in MM.
+
+![image-20230328220745775](assets/image-20230328220745775.png)
+
+- If we have a **non-clustering index** we might better scan the table ignoring the index. Why?
+- Of course, if we have a **clustering index**, we use it.
 
 ## Algorithms for projection
 
+- Given a projection we have to scan the relation and drop certain attributes of each tuple. 
+  - That’s easy.
+
 ## Algorithms for joins
+
+- Joins are expensive and very common.
+- Consider the natural join of Maintenances and Employees.
+- Suppose Employees has an unclustered index (B-Tree) on the SIN column.
+
+**Index nested loops join** 
+
+- Scan Maintenances and for each tuple probe Employees for matching tuples (using the index on Employees.SIN).
+- Analysis:
+  -  For each of the 100,000 maintenance tuples, we try to access the corresponding employee with 3 I/Os (via the index).
+  - So, 100,000*3 = **300,000 I/Os !!**
 
 ## Algorithms for joins (merge-join)
 
+**Sort-merge join**
+
+- **Sort** both tables **on the join column**, then scan them to find matches
+- Analysis: 
+  - Sort Maintenances with 2PMMS, and Employees with 2PMMS
+  - Cost for sort is 
+    - 2 * 2 * 1000 = 4000 I/Os for Maintenances and 
+    - 2 * 2 * 50 = 200 I/Os. for Employees
+  - Then we merge-join. This requires an additional scan of both tables. – Thus the total cost is 4000+ 200+ 1000+ 50= **5250 I/Os**. (Much better!!)
+
 ## Algorithms for joins (sort-merge)
+
+So, we have: 
+
+- index nested loops join: 300,000 I/Os 
+- sort-merge join : 5,250 I/Os.
+- Why bother with index nested loops join?
+- Well, “*index nested loops*” method has the nice property that it is **incremental**.
+  - The cost of our example join is incremental in the number of **Maintenances** tuples that we process.
+  - If some additional selection in the query allows us to consider only a small subset of **Maintenances** tuples, we can avoid computing the full join of **Maintenances** and **Employees**. 
+    - Suppose we only want the result of the join for plane 100 on Mar 08, 2017, and there are very few such maintenances, say only two.
+    - For each of these two tuples, we probe Employees (twice), and we are done.
 
 ## Optimization
 
+- Observe the choice of index nested loops join is based on considering the query as a whole, including the selection on **Maintenances**, rather than just the join operation by itself.
+- This leads us to the next topic, **query optimization**, which is the process of finding a good plan for the **entire query.**
+
 ## Query evaluations plans
+
+- **Recall:** A <u>query evaluation plan</u> consists of an RA tree, with indications at each node for the method/algorithm to use.
+
+![image-20230328221411752](assets/image-20230328221411752.png)
 
 ## Alternative query evaluation plans
 
+- Lets look at two naïve plans
+
+![image-20230328221454469](assets/image-20230328221454469.png)
+
 ### Plan: Pushing selections I
+
+- Good **heuristic** for joins is to reduce the sizes of the tables to be
+  joined as much as possible.
+- One approach is to apply selections early; i.e. 'push' the selection ahead of the join.
+
+![image-20230328221536508](assets/image-20230328221536508.png)
 
 ### Plan: Pushing selections II
 
+![image-20230328221610513](assets/image-20230328221610513.png)
+
 ### Plan: Pushing selections III
+
+![image-20230328221624061](assets/image-20230328221624061.png)
 
 ### Plan: Pushing selections IV
 
+![image-20230328221639476](assets/image-20230328221639476.png)
+
 ## Pushing projections
+
+- A further refinement is to push projections, just like we pushed selections past the join.
+- Observe that only the *SIN* attribute of T1 and the *SIN* and *ename* attributes of T2 are really required.
+- When we scan **Maintenances** and **Employees** to do the selections, we could also eliminate unwanted columns. 
+  - This on-the-fly projection reduces the sizes of the temporary tables T1 and T2.
+  - The reduction in the size of T1 is substantial because only an integer field is retained.
+  - In fact, T1 now fits within three blocks (and be all can be in MM), and we can perform a block nested loops join with a single scan of T2.
 
 ### Plan using Indexes I
 
+- Suppose we have a clustering B-Tree index on the planeId field of Maintenances and another, non-clustering, B-Tree index on the SIN field of Employees.
+- We can use the plan in the figure.
+
+![image-20230328221800528](assets/image-20230328221800528.png)
+
 ### Plan using Indexes II
+
+- Assume that there are 100 planes and assume that the maintenances are spread out uniformly across all planes. 
+  - We can estimate the number of selected tuples to be 100,000/100=1000.
+  - Since the index on planeId is clustering, these 1000 tuples appear consecutively and therefore, the cost is:
+  - 10 blocks I/Os + 2 I/Os 
+    - (the 2 I/Os are for finding the first block via the index.
+
+![image-20230328221858779](assets/image-20230328221858779.png)
 
 ### Plan using Indexes III
 
+- For each selected tuple, we retrieve matching **Employees** tuples using the index on the *SIN* field;
+- The join field *SIN* is a key for **Employees**. Therefore, at most one **Employees** tuple matches a given **Maintenances** tuple.
+  - The cost of retrieving this matching tuple is 3 I/Os.
+  - So, for the 1000 Maintenances tuples we get 3000 I/O’s.
+
+- For each tuple in the result of the join, we perform the selection rating>5 and the projection of ename on-the-fly.
+- So, total: 3000+12 = **3012 I/Os.**
+
+![image-20230328222104758](assets/image-20230328222104758.png)
+
 ### Plan using Indexes IV
 
+- *Why didn’t we push the selection rating>5 ahead of the join?*
+- Had we performed the selection before the join, the selection would involve scanning **Employees** (*since no index is available on the rating field of Employees*).
+- Also, once we apply such a selection, we have no index on the *SIN* field of the result of the selection.
+- Thus, pushing selections ahead of joins is a good heuristic, but not always the best strategy.
+  - Typically, the existence of useful indexes is the reason a selection is not pushed.
+
+![image-20230328222214961](assets/image-20230328222214961.png)
+
 ### Plan using Indexes V
+
+- *Suppose that we have a clustering index on Employees.sin.*
+- *What about this plan?*
+- The size of T would be the number of blocks for the **1,000 Maintenances** tuples that have planeId=100. – i.e. T is 10 blocks.
+- The cost of planeId=100 as before is 12 I/Os to retrieve plus 10 additional I/Os I/Os to write T.
+- Then, sort T on the SIN attribute. 2PMMS = 40 I/Os.
+- Employees is already sorted since it has a clustering index on SIN.
+- The merge phase of the join needs a scan of both T and Employees. So, 10+50=60 I/Os.
+- Total: (12+10)+40+60 = **122 I/Os**
+
+![image-20230328222327492](assets/image-20230328222327492.png)
+
+> This improved plan also demonstrates that pipelining is not always the best strategy
 
 # Transactions (Concurrency) - Controlling Concurrent Behavior
 

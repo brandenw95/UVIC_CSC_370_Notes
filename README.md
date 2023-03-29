@@ -3383,7 +3383,7 @@ CREATE TABLE ATVs (
 );
 ```
 
-# Illegal View Operations
+## Illegal View Operations
 
 **Example**:
 
@@ -3606,61 +3606,463 @@ AND X.st<Y.en
 
 ## Introduction to DB Security
 
+- **Secrecy**: Users shouldn’t be able to see things they are not supposed to.
+
+> Ex. A student can’t see other students’ grades.
+
+- **Integrity**: Users shouldn’t be able to modify things they are not supposed to.
+
+> Ex. Only instructors can assign grades.
+
+- **Availability**: Users should be able to see and modify things they are allowed to.
+
 ## Access Controls
+
+- Discretionary access control (DAC) 
+- Mandatory access control (MAC)
 
 ## Discretionary Access Control
 
+- Based on concept of **privileges** for objects (*tables* and *views*) and **mechanisms** for **granting** and **revoking** privileges
+- **Creator** of an object automatically gets all privileges on it.
+- **DMBS** keeps track of who subsequently *gains* and *loses* privileges.
+
 ## GRANT Command
+
+```SQL
+GRANT privileges ON object TO users [WITH GRANT OPTION]
+```
+
+- privileges can be:
+  - SELECT - Can read all columns including those added later via ALTER TABLE command
+  - INSERT(column-name) Can insert tuples with *non*-*null* or *nondefault* values in this column.
+  - INSERT means same right with respect to all columns.
+  - DELETE Can delete tuples.
+  - REFERENCES (column-name) Can define foreign keys (in other tables) that refer to this column.
+- If you want the recipient(s) to be able to pass the privilege(s) to others add: **WITH GRANT OPTION**
 
 ## Grant Examples I
 
+- Suppose Joe has created the tables:
+  - **Sailors**(<u>sid</u>, sname, rating, age) 
+  - **Boats**(<u>bid</u>, bname, color) 
+  - **Reserves**(<u>sid</u>, <u>bid</u>, <u>day</u>)
+- Joe now executes the following:
+
+```SQL
+GRANT INSERT, DELETE ON Reserves TO Yuppy WITH GRANT OPTION;
+```
+
+- Yuppy can now insert or delete **Reserves** rows and authorize someone else to do the same.
+
 ## Grant Examples II
+
+- **Joe** further executes: 
+
+```SQL
+GRANT SELECT ON Reserves TO Michael; 
+GRANT SELECT ON Sailors TO Michael WITH GRANT OPTION;
+```
+
+- **Michael** can create a view:
+
+```SQL
+CREATE VIEW ActiveSailors (name, age, day) AS 
+	SELECT S.sname, S.age, R.day 
+	FROM Sailors S, Reserves R 
+	WHERE S.sid = R.sid AND S.rating > 6;
+```
+
+- However, Michael cannot grant SELECT on **ActiveSailors** to others.
 
 ## Grant Examples III
 
+- On the other hand, suppose that Michael executes:
+
+```SQL
+CREATE VIEW YoungSailors (sid, age, rating) AS 
+	SELECT S.sid, S.age, S.rating 
+	FROM Sailors S 
+	WHERE S.age < 18;
+```
+
+- Michael can then say:
+
+```SQL
+GRANT SELECT ON YoungSailors TO Eric, Guppy;
+```
+
+- Eric and Guppy can exec. SELECT queries on **YoungSailors**. 
+  - however, not directly on the underlying **Sailor** table.
+
 ## Grant Examples IV
+
+- Suppose now **Joe** executes:
+
+```SQL
+GRANT UPDATE (rating) ON Sailors TO Leah;
+```
+
+- Leah can update only the rating column of Sailors. E.g.
+
+```SQL
+UPDATE Sailors 
+SET rating = 8;
+```
+
+- However, she cannot execute:
+
+```SQL
+UPDATE Sailors 
+SET age = 25;
+```
+
+- She cannot execute either:
+
+```SQL
+UPDATE Sailors 
+SET rating = rating-l;
+```
 
 ## Grant Examples V
 
+- Suppose now that Joe executes:
+
+```SQL
+GRANT SELECT, REFERENCES(bid) ON Boats TO Bill;
+```
+
+- Bill can then refer to the bid column of Boats as a foreign key in another table. E.g.
+
+```SQL
+CREATE TABLE BillTable ( 
+    bid INTEGER, 
+    …
+	FOREIGN KEY (bid) REFERENCES Boats 
+);
+```
+
+> But, why the SQL standard chose to introduce the
+> REFERENCES privilege
+> rather than to simply allow the SELECT privilege to be used when creating a Foreign Key?
+>
+> This is because now Joe is restricted in what he can do with the tuples in his own table. For example, Joe cannot now delete a tuple in Boats which is referenced by a tuple in BillTable. In other words, Bill can now constrain Joe wrt to his table. This goes well beyond a simple SELECT privilege.
+
 ## Role-Based Authorization
+
+- Privileges can also be assigned to roles. 
+- Roles can then be granted to users and to other roles. 
+- Roles reflect how real organizations work.
+
+Example:
+
+```SQL
+CREATE ROLE some_role;
+
+GRANT SELECT ON Reserves TO some_role; 
+GRANT INSERT ON Sailors TO some_role; 
+GRANT UPDATE ON Boats TO some_role;
+
+GRANT some_role TO Michael; 
+GRANT some_role TO Bill;
+```
 
 ## Revoke Examples
 
+- Joe executes:
+
+```SQL
+GRANT SELECT ON Sailors TO Art WITH GRANT OPTION 
+GRANT SELECT ON Sailors TO Art WITH GRANT OPTION 
+REVOKE SELECT ON Sailors FROM Art CASCADE
+```
+
+- Since Joe granted the privilege to Art twice and only revoked it once, does Art get to keep the privilege?
+  - NO. It doesn’t matter how many times we grant a privilege.
+
 ## Privilege Descriptors
+
+- When a GRANT is executed, a **privilege descriptor** is added to a descriptors **table**.
+- Privilege descriptor specifies the: 
+  - *grantor*
+  - *grantee*
+  - *granted privilege*
+  - *grant option*
+- When a user creates a table or view he 'automatically' gets all privileges from **system**.
 
 ## Authorization Graphs
 
+> **Nodes** 
+>
+> users
+
+> **Arcs** 
+>
+> privileges passed
+
+WGO abbr. for WITH GRANT OPTION
+
+- Joe: GRANT SELECT ON Sailors TO Art WGO
+- Art: GRANT SELECT ON Sailors TO Bob WGO 
+- Bob: GRANT SELECT ON Sailors TO Art WGO 
+- Joe: GRANT SELECT ON Sailors TO Cal WGO 
+- Cal: GRANT SELECT ON Sailors TO Bob WGO
+
+![image-20230328203037954](assets/image-20230328203037954.png)
+
 ## Effects of Revocations I
+
+- Suppose Joe executes:
+
+```SQL
+ REVOKE SELECT ON Sailors FROM Art CASCADE
+```
+
+- The arc from Joe to Art is removed.
+- Art still has the privilege
+  - Got it independently from Bob.
+
+![image-20230328203201899](assets/image-20230328203201899.png)
 
 ## Effects of Revocations II
 
+- Suppose Joe now executes:
+
+```SQL
+REVOKE SELECT ON Sailors FROM Cal CASCADE
+```
+
+- The arc from Joe to Cal is removed
+- Cal, Art and Bob lose privileges because there **isn’t a path from System.**
+
+![image-20230328203308235](assets/image-20230328203308235.png)
+
 ## Grant and Revoke on Views
+
+Suppose that 
+
+- Joe, the creator of table **Sailors**, gave *Michael* SELECT privilege on the table with grant option.
+
+- Michael created view **YoungSailors** and gave *Eric* SELECT privilege on it.
+
+- Eric created view **FineYoungSailors**:
+
+  ```SQL
+  CREATE VIEW FineYoungSailors (name, age, rating) AS 
+  	SELECT S.sname, S.age, S.rating 
+  	FROM YoungSailors S 
+  	WHERE S.rating> 6;
+  ```
+
+  
+
+- What happens if *Joe* revokes the SELECT privilege on **Sailors** from *Michael*?
+
+- Michael no longer has the authority to execute the query used to define **YoungSailors** because the definition refers to Sailors. 
+
+  - Therefore, the view **YoungSailors** is dropped. 
+  - In turn, **FineYoungSailors** is dropped as well.
 
 ## Revoking REFERENCES privilege
 
+- Recall, Joe had executed:
+
+```SQL
+GRANT REFERENCES(bid) ON Boats TO Bill;
+```
+
+- Bill referred to the bid column of Boats as a foreign key in BillTable table.
+
+```SQL
+CREATE TABLE BillTable ( 
+    bid INTEGER, 
+    …
+	FOREIGN KEY (bid) REFERENCES Boats 
+);
+```
+
+- If now Joe revokes the REFERENCES privilege from Bill, then the Foreign Key constraint referencing the **Boat** table will be dropped from the Bill’s **Reserves** table
+
 ## The problem with DAC
+
+- Discretionary control has some flaws, e.g., the **Trojan horse** problem:
+- Dick creates table **Horsie** and gives **INSERT** privilege to Justin (who doesn’t know about this).
+- Dick modifies the code of an application program used by Justin to additionally write some secret data to table **Horsie**.
+- Now, Dick can see the secret info.
+
+> The modification of the code is beyond the DBMS’s control, but DBMS can try and prevent the use of the database as a channel for secret information.
 
 ## Mandatory Access Control
 
+- Based on system-wide policies that cannot be changed by individual users.
+- Each **DB object** is assigned a **security class.**
+- Each **subject** (user or user program) is assigned a **clearance** for a security class.
+
 ## Bell-LaPadula Model
+
+- Objects (e.g., tables, views) 
+- Subjects (e.g., users, user programs)
+- Security classes:
+  - Top secret (TS), secret (S), confidential (C), unclassified (U):
+  - TS > S> C > U
+- Each object and subject is assigned a class.
+
+> example:
+>
+> - Simple Security Property: Subject S can read object O only if class(S) >=class(O)
+> - *-Property: Subject S can write object O only if class(S) <= class(O)
+
+> Idea is to ensure that information can never flow from a higher to a lower security level. 
+>
+> Ex. If Dick has security class C, Justin has class S, and the secret table has class S: Dick’s table, Horsie, has Dick’s clearance, C. Justin’s application has his clearance, S. So, the program cannot write into table Horsie
 
 ## Statistical Databases
 
+Statistical DB: Contains information about individuals, but allows only aggregate queries (e.g., average age, rather than Joe’s age). 
 
+New problem: It may be possible to infer some secret information! 
+
+> **Example**
+>
+> - Suppose Sneaky Pete wants to know the rating of Admiral Horntooter
+>   - It happens that Pete knows that Horntooter is the oldest sailor in the club.
+>   - Pete repeatedly asks "How many sailors are older than an age X" for various values of X, until the answer is 1.
+>   - Obviously, this sailor is Horntooter, the oldest sailor. 
+>   - Hence the Horntooter’s age is discovered.
+> - Each of these queries is a valid statistical query and is permitted. Let the value of X at this point be, say, 65.
+> - Pete now asks the query, "What is the average rating of all sailors whose age is greater or equal to 65?" …discovering so the Horntooter’s rating.
 
 # Data Analysis with SQL (sql_time)
 
 ## Example: Insert
 
+```SQL
+CREATE TABLE people ( 
+    name VARCHAR(20), 
+    dob DATE
+); 
+
+INSERT INTO people 
+VALUES ('Larry David', '1947-07-02');
+```
+
 ## Format
+
+- A date/time string can be (inserted/stored) in many formats
+
+> Examples
+>
+> ```SQL
+> INSERT INTO people 
+> VALUES ('Larry David', '1947-07-02'); 
+> 
+> INSERT INTO people 
+> VALUES ('James Thomson', to_date('14 Dec 2002', 'DD Mon YYYY')); 
+> 
+> INSERT INTO people 
+> VALUES ('Ben Stiller', to_date('November 30, 1965', 'Month DD, YYYY'));
+> 
+> select name, to_char(dob,'Month DD, YYYY') 
+> from people;
+> ```
+>
+> 
+>
+> Larry David,	"July 02, 1947"
+>
+> James Thomson,	"December 14, 2002" 
+>
+> Ben Stiller,	"November 30, 1965"
 
 ## Extract info from date
 
+```SQL
+SELECT EXTRACT(YEAR FROM dob) 
+FROM people;
+
+SELECT EXTRACT(MONTH FROM dob) 
+FROM people;
+
+--extract day of the month 
+SELECT EXTRACT(DAY FROM dob) 
+FROM people;
+
+--extract day of the year 
+SELECT EXTRACT(DOY FROM dob) 
+FROM people;
+
+--extract day of week Sunday (0) to Saturday (6) 
+SELECT EXTRACT(DOW FROM dob) 
+FROM people;
+
+SELECT EXTRACT(WEEK FROM dob) 
+FROM people;
+
+SELECT EXTRACT(QUARTER FROM dob) 
+FROM people;
+
+SELECT name, age(dob) 
+FROM people;
+```
+
 ## Orders, Orderlines, Products
+
+```SQL
+CREATE TABLE orders ( 
+    orderid int, 
+    customerid int, 
+    campaignid int, 
+    orderdate date, 
+    city varchar(50), 
+    state char(2), 
+    zipcode char(5), 
+    paymenttype varchar(50), 
+    totalprice int, 
+    numorderlines int, 
+    numunits int
+);
+```
+
+```SQL
+CREATE TABLE orderline ( 
+    orderlineid int, 
+    orderid int, 
+    productid int, 
+    shipdate date, 
+    billdate date, 
+    unitprice real, 
+    numunits int, 
+    totalprice real
+);
+```
+
+```SQL
+CREATE TABLE products ( 
+    productid int, 
+    productname text, 
+    productgroupcode text, 
+    productgroupname text, 
+    instockflag text, 
+    fullprice int
+);
+```
 
 ## How do the number of orders and average order price vary by day of the year?
 
+```SQL
+SELECT
+	EXTRACT(month from orderdate) AS month, 
+	EXTRACT(day from orderdate) AS day, 
+	COUNT(orderid) AS numorders, 
+	AVG(totalprice) AS avgtotalprice
+FROM orders 
+GROUP BY month, day 
+ORDER BY 1;
+```
+
 ## Chart
+
+![image-20230328205407484](assets/image-20230328205407484.png)
 
 ## How many orders are placed on each day of the week?
 
@@ -3791,6 +4193,92 @@ AND X.st<Y.en
 ### Toy example for 2PMMS
 
 ### Toy Example
+
+# BTree Indexes (btrees)
+
+## Why Indexes?
+
+## BTrees, Un-clustered index: A leaf and interior node
+
+## Clustered index: Leaf with records and interior node
+
+## Types of B-Trees
+
+## Operations in B-Tree
+
+### Lookup
+
+### Insertion
+
+### Beginning of the insertion of key 40
+
+### Continuing of the Insertion of key 40
+
+### Completing of the Insertion of key 40
+
+### Completing the Insertion of key 40
+
+### Deletion
+
+### Deletion (Raising a key to parent)
+
+### Deletion
+
+### Deletion
+
+### Deletion
+
+## Structure of B-trees with real blocks
+
+## Example
+
+## Building a B-Tree from Existing Data
+
+## Pointer Intersection
+
+ # Query Evaluation (queryeval)
+
+## An SQL query and its RA equiv.
+
+## Query Optimization
+
+## Running Example – Airline
+
+## Algorithms for selection
+
+## Algorithms for projection
+
+## Algorithms for joins
+
+## Algorithms for joins (merge-join)
+
+## Algorithms for joins (sort-merge)
+
+## Optimization
+
+## Query evaluations plans
+
+## Alternative query evaluation plans
+
+### Plan: Pushing selections I
+
+### Plan: Pushing selections II
+
+### Plan: Pushing selections III
+
+### Plan: Pushing selections IV
+
+## Pushing projections
+
+### Plan using Indexes I
+
+### Plan using Indexes II
+
+### Plan using Indexes III
+
+### Plan using Indexes IV
+
+### Plan using Indexes V
 
 # Transactions (Concurrency) - Controlling Concurrent Behavior
 

@@ -4066,57 +4066,213 @@ ORDER BY 1;
 
 ## How many orders are placed on each day of the week?
 
+```SQL
+SELECT 
+	EXTRACT(dow from orderdate) AS dayofweek, 
+	COUNT(orderid) AS numorders
+FROM orders 
+GROUP BY dayofweek 
+ORDER BY 1;
+```
+
 ## How many orders are placed on each day of the week? – Horizontally
+
+```SQL
+SELECT 
+    SUM(CASE WHEN EXTRACT(dow from orderdate)=0 THEN 1 ELSE 0 END) AS Sun, 
+    SUM(CASE WHEN EXTRACT(dow from orderdate)=1 THEN 1 ELSE 0 END) AS Mon, 
+    SUM(CASE WHEN EXTRACT(dow from orderdate)=2 THEN 1 ELSE 0 END) AS Tue, 
+    SUM(CASE WHEN EXTRACT(dow from orderdate)=3 THEN 1 ELSE 0 END) AS Wed, 
+    SUM(CASE WHEN EXTRACT(dow from orderdate)=4 THEN 1 ELSE 0 END) AS Thu, 
+    SUM(CASE WHEN EXTRACT(dow from orderdate)=5 THEN 1 ELSE 0 END) AS Fri, 
+    SUM(CASE WHEN EXTRACT(dow from orderdate)=6 THEN 1 ELSE 0 END) AS Sat
+FROM orders;
+```
 
 ## Has the number of orders by day of the week changed over the years?
 
+```sql
+SELECT EXTRACT(year from orderdate) AS theyear, 
+    SUM(CASE WHEN EXTRACT(dow from orderdate)=0 THEN 1 ELSE 0 END) AS Sun, 
+    SUM(CASE WHEN EXTRACT(dow from orderdate)=1 THEN 1 ELSE 0 END) AS Mon, 
+    SUM(CASE WHEN EXTRACT(dow from orderdate)=2 THEN 1 ELSE 0 END) AS Tue, 
+    SUM(CASE WHEN EXTRACT(dow from orderdate)=3 THEN 1 ELSE 0 END) AS Wed, 
+    SUM(CASE WHEN EXTRACT(dow from orderdate)=4 THEN 1 ELSE 0 END) AS Thu, 
+    SUM(CASE WHEN EXTRACT(dow from orderdate)=5 THEN 1 ELSE 0 END) AS Fri, 
+    SUM(CASE WHEN EXTRACT(dow from orderdate)=6 THEN 1 ELSE 0 END) AS Sat
+FROM orders 
+GROUP BY theyear;
+```
+
 ## Alternative + Excel Pivot
+
+```sql
+SELECT 
+	EXTRACT(year from orderdate) AS theyear, 
+	EXTRACT(dow from orderdate) AS dayofweek, 
+	COUNT(orderid) AS cnt
+FROM orders 
+GROUP BY theyear, dayofweek;
+```
 
 ## What is the number of orders by quarter of each year?
 
-## What is the product category of the most popular product during each month?
+```sql
+SELECT 
+	EXTRACT(year from orderdate) AS yr, 
+	EXTRACT(quarter from orderdate) AS quarter,
+	COUNT(orderid) AS numorders 
+FROM orders 
+GROUP BY yr, quarter 
+ORDER BY 1,2;
+```
 
 ## What is the frequency of each product in each month?
 
+```sql
+SELECT 
+	EXTRACT(year from orderdate) as yr, 
+	EXTRACT(month from orderdate) as mon, productid, 
+	COUNT(*) as cnt
+FROM orders JOIN orderline USING(orderid) 
+GROUP BY yr, mon, productid;
+```
+
+> The date is in orders, whereas product is in orderline. So, we need to join orders with orderline.
+> We will produce the result in vertical form.
+
 ## Results
+
+![image-20230328210008262](assets/image-20230328210008262.png)
 
 ## What is the maximum frequency in each month?
 
+```SQL
+SELECT yr, mon, MAX(cnt) AS maxcnt 
+	FROM ( 
+        Q1
+) GROUP BY yr, mon;
+```
+
 ## Results
+
+![image-20230328210048954](assets/image-20230328210048954.png)
 
 ## What is the product category of the most popular product during each month?
 
+```SQL
+SELECT prodmon.yr, prodmon.mon, prodmon.cnt, p.productgroupname FROM Q1 prodmon 
+	JOIN Q2 prodmax ON 
+		prodmon.yr = prodmax.yr AND 
+		prodmon.mon = prodmax.mon AND 
+		prodmon.cnt = prodmax.maxcnt
+	JOIN products p ON 
+		prodmon.productid = p.productid
+ORDER BY 1, 2;
+```
+
 ## Results
 
+![image-20230328210524273](assets/image-20230328210524273.png)
+
 ## Chart
+
+![image-20230328210537458](assets/image-20230328210537458.png)
 
 # Data Analysis with SQL Window Functions (sql_window)
 
 ## Product – Order line – Orders
 
+```sql
+product ( 
+    productid int, 
+    productgroupname varchar(50), 
+    …
+);
+```
+
+```sql
+orderline ( 
+    productid int, 
+    orderid int, 
+    totalprice real, 
+    …
+);
+```
+
+```sql
+orders ( 
+    orderid int, 
+    orderdate date, 
+    …
+)
+```
+
 ## orders per month per category
+
+```SQL
+CREATE TABLE T AS 
+SELECT 
+	TO_CHAR(orderdate, 'YYYY') AS year, 
+	TO_CHAR(orderdate, 'MM') AS month, 
+	productgroupname AS cat, 
+	COUNT(orderid) AS countorders, 
+	SUM(orderline.totalprice) AS revenue
+FROM orders JOIN 
+	orderline USING(orderid) JOIN 
+	products USING(productid)
+GROUP BY 
+	TO_CHAR(orderdate, 'YYYY'), 
+	TO_CHAR(orderdate, 'MM'), 
+	productgroupname
+ORDER BY 1,2;
+```
+
+![image-20230328212136793](assets/image-20230328212136793.png)
 
 ## WINDOW FUNCTIONS
 
+> For each category, which months were revenues below the average of the current year?
+
+- **First**: Mix **detail** (individual tuples) and **aggregate** information over a **window** of tuples.
+- **Second**: Extract what you want with an enclosing query.
+
 ### First: Mix detail and aggregate information over window
+
+![image-20230328212255165](assets/image-20230328212255165.png)
 
 ### Second: Extract what you want with enclosing query
 
+![image-20230328212324083](assets/image-20230328212324083.png)
+
 ### Several levels of aggregations at once
+
+```SQL
+SELECT year, month, cat, revenue, 
+	AVG(revenue) OVER (PARTITION BY year, cat) AS avg_y_c, 
+	AVG(revenue) OVER (PARTITION BY year) AS avg_y, 	
+	AVG(revenue) OVER () AS avg
+FROM T;
+```
+
+![image-20230328212415302](assets/image-20230328212415302.png)
 
 ### …without window functions
 
-### Which are the top 10 months in terms of revenue for each category?
+```SQL
+SELECT T.year, T.month, T.cat, X.avgr_y_c, Y.avg_y, Z.avg 
+FROM T,
 
-#### Results (ROW_NUMBER)
+	(SELECT year, cat, AVG(revenue) AS avgr_y_c 
+     FROM T GROUP BY year, cat) X,
 
-### Which are the top 10 months in terms of revenue for each category?
+	(SELECT year, AVG(revenue) AS avg_y 
+     FROM T GROUP BY year) Y,
 
-#### Results (RANK)
+	(SELECT AVG(revenue) AS avg FROM T) Z
 
-### Which are the top 10 months in terms of revenue for each category?
-
-#### Results (DENSE_RANK)
+WHERE T.year=X.year AND T.cat=X.cat AND T.year=Y.year;
+```
 
 # Storage Mechanics (storage)
 
@@ -4194,47 +4350,152 @@ ORDER BY 1;
 
 ### Toy Example
 
+
+
 # BTree Indexes (btrees)
 
 ## Why Indexes?
 
+- Help answering a lookup query like:
+
+```SQL
+SELECT * 
+FROM R 
+WHERE a=10;
+```
+
+- An **index** is a **data-structure** that
+  - takes the value of one or more attributes and
+  - finds the records with that value “quickly” 
+  - without having to look at more than a small fraction of all possible records
+
 ## BTrees, Un-clustered index: A leaf and interior node
+
+![image-20230328212810731](assets/image-20230328212810731.png)
 
 ## Clustered index: Leaf with records and interior node
 
+![image-20230328212823251](assets/image-20230328212823251.png)
+
 ## Types of B-Trees
+
+- Un-clustered index
+  - Key-pointers in the leaves
+- clustered index
+  - Records in the leaves
 
 ## Operations in B-Tree
 
+Will illustrate with unclustered case, but straightforward to generalize for the clustered case.
+
+**Operations** 
+
+1. Lookup 
+2. Insertion
+3. Deletion
+
 ### Lookup
+
+![image-20230328212952884](assets/image-20230328212952884.png)
+
+> **Recursive procedure:**
+>
+>  If we are at a leaf, look among the keys there. If the i-th key is K, the the i-th pointer will take us to the desired record. If we are at an internal node with keys K1,K2,…,Kn, then if K<K1we follow the first pointer, if K1K<K2 we follow the second pointer, and so on.
 
 ### Insertion
 
+> Try to insert a search key = 40. First, lookup for it, in order to find where to insert.
+
+![image-20230328213034323](assets/image-20230328213034323.png)
+
 ### Beginning of the insertion of key 40
+
+![image-20230328213103858](assets/image-20230328213103858.png)
 
 ### Continuing of the Insertion of key 40
 
+![image-20230328213124057](assets/image-20230328213124057.png)
+
 ### Completing of the Insertion of key 40
+
+![image-20230328213141005](assets/image-20230328213141005.png)
 
 ### Completing the Insertion of key 40
 
+![image-20230328213156771](assets/image-20230328213156771.png)
+
 ### Deletion
+
+> Suppose we delete key=7
+
+![image-20230328213211015](assets/image-20230328213211015.png)
 
 ### Deletion (Raising a key to parent)
 
-### Deletion
+![image-20230328213247322](assets/image-20230328213247322.png)
 
 ### Deletion
 
+![image-20230328213302275](assets/image-20230328213302275.png)
+
 ### Deletion
+
+![image-20230328213314902](assets/image-20230328213314902.png)
+
+### Deletion
+
+![image-20230328213329292](assets/image-20230328213329292.png)
 
 ## Structure of B-trees with real blocks
 
+- Degree n means that all nodes have space for 
+
+  - n search keys and 
+
+  - n+1 pointers
+
+    
+
+- Node = block 
+  - Let
+    - block size be 16,384 Bytes,
+    - key 20 Bytes, 
+    - pointer 20 Bytes.
+  - Let’s solve for n:
+
+20n + 20(n+1) <= 16,384
+
+-> n <= 409
+
 ## Example
+
+![image-20230328213527648](assets/image-20230328213527648.png)
 
 ## Building a B-Tree from Existing Data
 
+- Sort first, then build B-Tree.
+
 ## Pointer Intersection
+
+Example
+
+**Movies**(title,year,length,studio);
+
+Assume indexes on **studio** and **year**.
+
+```SQL
+SELECT title 
+FROM Movies 
+WHERE studio='Disney' AND year = 2021;
+```
+
+- Use index on **studio** to obtain pointers to records with **Disney** as studio, but don’t follow them. 
+  - Suppose we got 1000 such pointers.
+- Use index on **year** to obtain pointers to records with **2021** as year, but don’t follow them. 
+  - Suppose we got 1000 such pointers.
+- Intersect the first set of pointers with the second. 
+  - Suppose we got 20 such pointers (typical number of movies Disney makes a year).
+- Follow these 20 pointers and retrieve the records.
 
  # Query Evaluation (queryeval)
 

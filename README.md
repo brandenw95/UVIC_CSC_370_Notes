@@ -5379,3 +5379,269 @@ Instead of taking an exclusive lock immediately, a transaction can take **a shar
 ## Benefits of Upgrade Locks
 
 ![image-20230327131425207](assets/image-20230327131425207.png)
+
+# Recovery from crashes (recovery)
+
+ACID
+
+
+
+Primitive DB Operations of Transactions
+
+Example (Cont’d)
+
+Undo Logging
+
+Undo Logging (Cont’d)
+
+Example:
+
+Recovery With Undo Logging
+
+Example
+
+Checkpointing
+
+Example of an Undo log with CKPT
+
+Nonquiescent Checkpoint (NQ CKPT)
+
+Recovery with NQ CKPT
+
+Example of NQ Undo Log
+
+Undo Drawback
+
+Redo Logging
+
+Redo Logging (Cont’d)
+
+Example REDO:
+
+Compare to UNDO
+
+Recovery With Redo Logging
+
+Checkpointing for Redo Logging
+
+Checkpointing for Redo (Cont’d)
+
+Checkpointing for Redo (Cont’d)
+
+Recovery with Ckpt. Redo
+
+Undo/Redo Logging
+
+Undo/Redo Logging Scheme
+
+Undo/Redo vs Undo and Redo
+
+Simplified: Undo/Redo vs Undo and Redo
+
+Example UNDO/REDO:
+
+Compare to UNDO
+
+Compare to REDO:
+
+Undo/Redo Recovery
+
+Undo/Redo Checkpointing
+
+Undo/Redo Recovery
+
+Example
+
+# Functional Dependencies and Boyce-Codd Normal Form
+
+## Babies Schema
+
+- At a birth, there is one baby (twins would be represented by two births), one mother, any number of nurses, and a doctor.
+
+![image-20230403130316624](assets/image-20230403130316624.png)
+
+## Babies Table
+
+> **Births**(baby, mother, nurse, doctor)
+
+Some facts and assumptions:
+
+- For every baby, there is a unique mother.
+- For every (existing) combination of a baby and a mother there is a unique doctor.
+- There are many nurses assisting in a birth.
+
+## Anomalies
+
+![image-20230403130437468](assets/image-20230403130437468.png)
+
+- Redundancy.
+  - Information may be repeated unnecessarily in several tuples.
+
+## A Fix
+
+![image-20230403130507866](assets/image-20230403130507866.png)
+
+## Alternative Fix
+
+![image-20230403130526949](assets/image-20230403130526949.png)
+
+## Functional Dependencies
+
+- X -> A for a relation R means that
+  - whenever two tuples of R agree on all the attributes of X, then they must also agree on attribute A.
+  - We say: “X functionally determines A”
+
+Example:
+
+- baby -> mother 
+- baby mother -> doctor
+
+> Convention: 
+>
+> X, Y, Z represent sets of attributes; A, B, C,… represent single attributes. will write just ABC, rather than {A,B,C}.
+
+## Another Example
+
+> **Drinkers**(name, addr, beersLiked, manf, favBeer)
+
+Reasonable  FD's to assert:
+
+1. name -> addr
+2. name -> favBeer
+3. beersLiked -> manf
+
+## Example Data
+
+![image-20230403130925897](assets/image-20230403130925897.png)
+
+## FD’s With Multiple Attributes
+
+- No need for FD’s with more than one attribute on the **right**.
+  - But convenient to combine FD’s as a shorthand. E.g.
+    - *name -> addr* and 
+    - *name -> favBeer* become
+    - *name -> addr* favBeer
+- More than one attribute on the **left** may be **essential**. E.g.
+  - *bar beer -> price*
+- An FD A1A2…An -> B is trivial if B is one of A’s. E.g.
+  - *bar beer -> beer*
+
+## Keys of Relations
+
+- K is a **superkey** for relation R if K functionally determines **all** of R’s attributes.
+- K is a key for R if:
+  - K is a superkey, and
+  - Can’t remove some attribute from K and still be superkey
+- E.g. K=**{baby, nurse}** is a **key** for **Births**
+
+## Boyce-Codd Normal Form
+
+- **Boyce-Codd Normal Form (BCNF):** simple condition under which the anomalies can be guaranteed not to exist.
+- Relation R is in **BCNF** if:
+  - Whenever there is a nontrivial dependency A1…An -> B1…Bm for R, it must be the case that {A1,… , An} is a **superkey** for R.
+
+## BCNF Violation - Example
+
+Relation **Babies** isn’t in **BCNF**:
+
+- FD: **baby -> mother**
+- Left side isn't a superkey.
+  - We know: **baby** doesn't functionally determine nurse.
+
+## Decomposition into BCNF
+
+- Goal of decomposition is to replace a relation by several that don't exhibit anomalies.
+- Decomposition strategy is:
+  - Find a non-trivial FD A1A2…An -> B1B2…Bm that **violates** BCNF, i.e. A1A2…An isn’t a superkey.
+  - Decompose relation schema into two schemas:
+    - One is **all the attributes** involved in the **violating** **dependency** and
+    - the other is the **left side** and **all the other attributes** not involved in the dependency.
+- By **repeatedly**, choosing suitable decompositions, we can break any relation schema into a collection of smaller schemas in BCNF.
+
+## Babies Decomposition
+
+> **Births**(baby, mother, nurse, doctor)
+
+*baby -> mother* is a violating FD, so we decompose.
+
+![image-20230403133249261](assets/image-20230403133249261.png)
+
+This relation needs to be further decomposed using 
+
+baby -> doctor
+
+We’ll see a formal algorithm for **deducing** this FD.
+
+## Babies Decomposition
+
+![image-20230403133328153](assets/image-20230403133328153.png)
+
+## Deducing FDs
+
+- Suppose **we are told** of a set of FDs Based on them we can deduce other FDs.
+
+Example:
+
+- baby -> mother and 
+- baby mother -> doctor imply 
+- baby -> doctor
+
+> But, what's the algorithm?
+
+## Closure of a Set of Attributes
+
+- There is a general principle from which all possible FD’s follow.
+- Suppose {A1, A2, …, An} is a set of attributes and S is a set of FD’s.
+- Closure of {A1, A2, …, An} under the dependencies in **S** is the **set** of attributes **B**, which are functionally determined by A1, A2, …, An
+  i.e. A1A2…An -> B.
+  - Closure is denoted by {A1, A2, …, An}+. 
+  - A1, A2, …, An are in {A1, A2, …,An}+
+
+## Computing the Closure - Algorithm
+
+**Brief** 
+
+- Starting with the given set of attributes, repeatedly expand the set by adding the right sides of **FD’s** as soon as we have included their left sides.
+- Eventually, we cannot expand the set any more, and the resulting set is the **closure**.
+
+## Computing the Closure - Algorithm
+
+**Detailed**
+
+1. Let **X** be a set of attributes that eventually will become the closure. First **initialize** **X** to be {A1, A2, …, An}.
+2. Now, **repeatedly** search for some **FD** in **S**: B1B2…BmC
+   such that all of B’s are in set **X**, but C isn’t. Add C to **X**.
+3. **Repeat step 2** as many times as necessary until no more attributes can be added to **X**. Since **X** can only grow, and the number of attributes is finite, eventually nothing more can be added to **X**.
+4. Set **X** after no more attributes can be added to it is: {A1, A2, …, An}+.
+
+## Computing the Closure - Example
+
+- Consider a relation with schema R(A, B, C, D, E, F) and FD’s:
+  - AB -> C
+  - BC -> AD
+  - D -> E
+  - CF -> B
+
+Compute {A,B}+
+
+Iterations:
+
+![image-20230403134631653](assets/image-20230403134631653.png)
+
+- FD: CF -> B wasn't used because its left side is never contained in X.
+
+## Why Computing the Closure?
+
+![image-20230403134720037](assets/image-20230403134720037.png)
+
+## Example
+
+![image-20230403134736568](assets/image-20230403134736568.png)
+
+## baby functionally determines doctor
+
+![image-20230403134750462](assets/image-20230403134750462.png)
+
+## Closures and Keys
+
+![image-20230403134814134](assets/image-20230403134814134.png)

@@ -5382,77 +5382,248 @@ Instead of taking an exclusive lock immediately, a transaction can take **a shar
 
 # Recovery from crashes (recovery)
 
-ACID
+## ACID
+
+- The effect of a committed transaction is **durable** i.e. the effect on DB of a transaction must never be lost, once the transaction has completed.
+
+> ACID: Properties of a transaction: 
+>
+> - Atomicity
+> - Consistency
+> - Isolation
+> - Durability
+
+## Primitive DB Operations of Transactions
+
+- **INPUT(X)** ≡ copy **disk block** containing the database element X to **a memory buffer**
+- **READ(X,t)** ≡ assign the value of X to local variable t – [will assume it is automatically preceded by INPUT(x)]
+- **WRITE(X,t)** ≡ copy the value of local variable t to X buffer
+- **OUTPUT(X)** ≡ copy the **block** containing X from its buffer (in main memory) **to disk**
+
+## Example (Cont’d)
+
+![image-20230411182534811](assets/image-20230411182534811.png)
+
+- **Problem**: what happens if there is a system failure just before OUTPUT(B)?
+
+## Undo Logging
+
+- **log** all “important actions”
+
+![image-20230411182628771](assets/image-20230411182628771.png)
+
+## Undo Logging (Cont’d)
+
+- Two rules:
+  - **U1**: Log records for element X must be on disk before any database modification to X appears on disk.
+  - **U2**: <COMMIT T> must be on disk after all elements changed by T are written to disk.
+- Force log to be saved to disk by executing Flush Log.
+
+## Example:
+
+![image-20230411182737473](assets/image-20230411182737473.png)
+
+## Recovery With Undo Logging
+
+Examine each log entry <T, X, v>
+
+- If T complete, do nothing.
+- If T is incomplete, restore the old value of X
+
+In what order? 
+
+**From most recent to earliest.**
+
+## Example
+
+![image-20230411185410630](assets/image-20230411185410630.png)
+
+## Checkpointing
+
+- **Problem**: in principle, recovery requires looking at the entire log!!
+- **Simple solution:** occasional checkpoint operation during which we: 
+  - Stop accepting new transactions. 
+  - Wait until all current transactions commit or abort.
+  - Flush log to disk
+  - Enter a <CKPT> record in the log and flush log again
+  - Resume accepting transactions
+- If recovery is necessary, we know that all transactions prior to a <CKPT> record have committed or aborted and
+  - **need not be undone**
+
+## Example of an Undo log with CKPT
+
+![image-20230411185540352](assets/image-20230411185540352.png)
+
+## Nonquiescent Checkpoint (NQ CKPT)
+
+- **Problem**: don’t want to stop transactions from entering the system.
+
+![image-20230411185612884](assets/image-20230411185612884.png)
+
+## Recovery with NQ CKPT
+
+<u>**First case:**</u> 
+
+If the crash follows <END CKPT> 
+
+Then, undo any incomplete transaction that started after <START CKPT>
+
+<u>**Second case:**</u> 
+
+If the crash occurs between <START CKPT> and <END CKPT> 
+
+Then, undo any incomplete transaction that is on the CKPT list or started after <START CKPT>
+
+## Example of NQ Undo Log
+
+![image-20230411185728070](assets/image-20230411185728070.png)
+
+## Undo Drawback
+
+- Can’t commit a transaction without first writing all its changed data to disk.
+- Sometimes we can save disk I/O if we let changes to the DB reside only in main memory for a while;
+- …as long as we can fix things up in the event of a crash…
+
+## Redo Logging
+
+- log all “important actions”
+
+![image-20230411185808708](assets/image-20230411185808708.png)
+
+## Redo Logging (Cont’d)
+
+- One rule:
+  - R1: All log records (including <COMMIT T>) must be on disk before any modification to X appears on disk.
+
+> **<u>Compare to:</u>**
+>
+> - U1: Log records for element X must be on disk before any modification to X appears on disk.
+> - U2: <COMMIT T> must be on disk after all elements changed by T are written to disk.
+
+## Example REDO:
+
+![image-20230411185919886](assets/image-20230411185919886.png)
+
+## Compare to UNDO
+
+![image-20230411185933037](assets/image-20230411185933037.png)
+
+## Recovery With Redo Logging
+
+Only committed transactions matter! 
+
+Examine each log entry <T, X, v> 
+
+1. If T incomplete, do nothing.
+2. If T is complete, redo the operation: 
+   1. For each <T, X, v> in the log do: 
+      1. WRITE(X,v); OUTPUT(X);
 
 
 
-Primitive DB Operations of Transactions
+In what order? 
 
-Example (Cont’d)
+From the earliest to latest.
 
-Undo Logging
+## Checkpointing for Redo Logging
 
-Undo Logging (Cont’d)
+- **Key action** we must take between the **start** and **end** of checkpoint is to write to disk **all** the *“dirty buffers.*”
+  - *Dirty buffers* are those that have been changed by committed transactions but not written yet to disk.
+- Unlike in the undo case, we don’t need to wait for active transactions to finish (in order to write <END CKPT>).
+  - However, **we wait for copying dirty buffers of the committed transactions.**
 
-Example:
+## Checkpointing for Redo (Cont’d)
 
-Recovery With Undo Logging
+1. Write a <START CKPT(T1,...,Tk )> record to the log, where Ti’s are all the active transactions.
+2. Write to disk all the dirty buffers of transactions that had already committed when the START CKPT was written to log.
+3. Write an <END CKPT> record to log.
 
-Example
+## Checkpointing for Redo (Cont’d)
 
-Checkpointing
+![image-20230411190215776](assets/image-20230411190215776.png)
 
-Example of an Undo log with CKPT
+## Recovery with Ckpt. Redo
 
-Nonquiescent Checkpoint (NQ CKPT)
+**Two cases:**
 
-Recovery with NQ CKPT
+1. If the crash follows <END CKPT>, we can restrict ourselves to transactions that began after <START CKPT> and those in the START list.
+   This is because we know that, in this case, every value written by committed transactions, before START CKPT(…), is now in disk.
+2. If the crash occurs between <START CKPT> and <END CKPT>, then go and find the previous <END CKPT> and do the same as in the first case.
+   1. This is because we are not sure that committed transactions before START CKPT(…) have their changes to disk.
 
-Example of NQ Undo Log
+## Undo/Redo Logging
 
-Undo Drawback
+**Problem**: Both previous methods have some drawbacks:
 
-Redo Logging
+- **Undo** requires the data to be written to disk in order to commit a transaction 
+  - this increases the # of disk I/O’s
+- **Redo** requires keeping all modified blocks buffered until after transaction commits
+  - this increases the average # of buffers needed by transactions
 
-Redo Logging (Cont’d)
+## Undo/Redo Logging Scheme
 
-Example REDO:
+- Log entries are now:
+  - <T, X, o, n> which means that transaction T updated DB element X from old value o to new value n
+- **Undo/Redo Rule:**
+  - **UR1**: Log records for element X must be on disk before any modification to X appears on disk.
 
-Compare to UNDO
+> Note:
+>
+> - No condition here about whether DB elements are output to disk before or after the commit point.
+>   - This scheme has the characteristics of both UNDO and REDO schemes in that it writes the update log records first.
 
-Recovery With Redo Logging
+## Undo/Redo vs Undo and Redo
 
-Checkpointing for Redo Logging
+**UR1**: Log records for element X must be on disk before any modification to X appears on disk.
 
-Checkpointing for Redo (Cont’d)
+Compare to: 
 
-Checkpointing for Redo (Cont’d)
+**R1**: All log records (including <COMMIT T>) must be on disk before any modification to X appears on disk.
 
-Recovery with Ckpt. Redo
+**U1**: Log records for element X must be on disk before any modification to X appears on disk. [Same as UR1]
 
-Undo/Redo Logging
+**U2**: <COMMIT T> must be on disk after all elements changed by T are written to disk.
 
-Undo/Redo Logging Scheme
+## Simplified: Undo/Redo vs Undo and Redo
 
-Undo/Redo vs Undo and Redo
+![image-20230411190551523](assets/image-20230411190551523.png)
 
-Simplified: Undo/Redo vs Undo and Redo
+## Example UNDO/REDO:
 
-Example UNDO/REDO:
+![image-20230411190603042](assets/image-20230411190603042.png)
 
-Compare to UNDO
+## Compare to UNDO
 
-Compare to REDO:
+![image-20230411190615904](assets/image-20230411190615904.png)
 
-Undo/Redo Recovery
+## Compare to REDO:
 
-Undo/Redo Checkpointing
+![image-20230411190625644](assets/image-20230411190625644.png)
 
-Undo/Redo Recovery
+## Undo/Redo Recovery
 
-Example
+**The undo/redo recovery scheme:**
 
-# Functional Dependencies and Boyce-Codd Normal Form
+- **Undo** all incomplete transactions in the order latest-first. 
+- **Redo** all committed transactions in the order earliest-first.
+
+## Undo/Redo Checkpointing
+
+1. Write <START CKPT(T1,...,Tk )> record to log, where Ti’s are all active transactions.
+2. Write to disk “all” the dirty buffers, NOT ONLY OF THE COMMITED TRANSACTIONS.
+3. Write an <END CKPT> record to log.
+
+## Undo/Redo Recovery
+
+1. Find problematic transactions: Analysis phase: Scan the log backward back to previous checkpoint (pair of START CKPT, END CKPT); include every transaction T that either • started after the checkpoint began or • is in the “active” list at START CKPT.
+2. If a transaction has no COMMIT record in the log, undo it. (Must proceed from the end to the front)
+3. If the transaction has a COMMIT record, redo it. (Must proceed from the earliest (front) to end)
+
+## Example
+
+![image-20230411190830666](assets/image-20230411190830666.png)
+
+# Functional Dependencies and Boyce-Codd Normal Form (bcnf)
 
 ## Babies Schema
 

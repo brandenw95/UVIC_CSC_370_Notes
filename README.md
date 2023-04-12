@@ -546,9 +546,6 @@ This course is an introduction to database systems. Topics include database desi
 - [Lecture 27](assets/27.concurrency_lock_types.pdf) - concurrency_lock_types
 - [Lecture 28](assets/28.recovery.pdf) - recovery
 - [Lecture 29](assets/29.bcnf.pdf) - bcnf
-- [Lecture 30](assets/30.Final Exam - CSC 370 - Old - Sol.pdf) - Final Exam - CSC 370 - Old - Sol
-- [Lecture 31](assets/31.Final Exam - CSC 370 - Old.pdf) - Final Exam - CSC 370 - Old
-- [Lecture 32](assets/32.review.pdf) - review
 
 # Entity-Relationship Model
 

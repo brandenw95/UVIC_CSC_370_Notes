@@ -517,38 +517,38 @@ This course is an introduction to database systems. Topics include database desi
 
 ## Lecture Slides
 
-[Lecture 1](assets/1.intro.pdf) - intro
-[Lecture 2](assets/2.er.pdf) - er
-[Lecture 3](assets/3.sql1.pdf) - sql1
-[Lecture 4](assets/4.er-rel.pdf) - er-rel
-[Lecture 5](assets/5.pharmacies_example.pdf) - pharmacies_example
-[Lecture 6](assets/6.rel-algebra.pdf) - rel-algebra
-[Lecture 7](assets/7.rel-algebra2.pdf) - rel-algebra2
-[Lecture 8](assets/8.sql2.pdf) - sql2
-[Lecture 9](assets/9.sql4.pdf) - sql4
-[Lecture 10](assets/10.sql3.pdf) - sql3
-[Lecture 11](assets/11.neon-datagrip-import-query.pdf) - neon-datagrip-import-query
-[Lecture 12](assets/12.neondb_setup.pdf) - neondb_setup
-[Lecture 13](assets/13.security.pdf) - security
-[Lecture 14](assets/14.constraints-all.pdf) - constraints-all
-[Lecture 15](assets/15.sql_time.pdf) - sql_time
-[Lecture 16](assets/16.pharmacies_er.pdf) - pharmacies_er
-[Lecture 17](assets/17.midtermCSC370_old_er_to_tables_sol.pdf) - midtermCSC370_old_er_to_tables_sol
-[Lecture 18](assets/18.midtermCSC370_old.pdf) - midtermCSC370_old
-[Lecture 19](assets/19.midterm_review.pdf) - midterm_review
-[Lecture 20](assets/20.midterm-review-handwritten.pdf) - midterm-review-handwritten
-[Lecture 21](assets/21.midtermCSC370_old_solQ3.pdf) - midtermCSC370_old_solQ3
-[Lecture 22](assets/22.sql_window.pdf) - sql_window
-[Lecture 23](assets/23.storage.pdf) - storage
-[Lecture 24](assets/24.btrees.pdf) - btrees
-[Lecture 25](assets/25.queryeval.pdf) - queryeval
-[Lecture 26](assets/26.concurrency.pdf) - concurrency
-[Lecture 27](assets/27.concurrency_lock_types.pdf) - concurrency_lock_types
-[Lecture 28](assets/28.recovery.pdf) - recovery
-[Lecture 29](assets/29.bcnf.pdf) - bcnf
-[Lecture 30](assets/30.Final Exam - CSC 370 - Old - Sol.pdf) - Final Exam - CSC 370 - Old - Sol
-[Lecture 31](assets/31.Final Exam - CSC 370 - Old.pdf) - Final Exam - CSC 370 - Old
-[Lecture 32](assets/32.review.pdf) - review
+- [Lecture 1](assets/1.intro.pdf) - intro
+- [Lecture 2](assets/2.er.pdf) - er
+- [Lecture 3](assets/3.sql1.pdf) - sql1
+- [Lecture 4](assets/4.er-rel.pdf) - er-rel
+- [Lecture 5](assets/5.pharmacies_example.pdf) - pharmacies_example
+- [Lecture 6](assets/6.rel-algebra.pdf) - rel-algebra
+- [Lecture 7](assets/7.rel-algebra2.pdf) - rel-algebra2
+- [Lecture 8](assets/8.sql2.pdf) - sql2
+- [Lecture 9](assets/9.sql4.pdf) - sql4
+- [Lecture 10](assets/10.sql3.pdf) - sql3
+- [Lecture 11](assets/11.neon-datagrip-import-query.pdf) - neon-datagrip-import-query
+- [Lecture 12](assets/12.neondb_setup.pdf) - neondb_setup
+- [Lecture 13](assets/13.security.pdf) - security
+- [Lecture 14](assets/14.constraints-all.pdf) - constraints-all
+- [Lecture 15](assets/15.sql_time.pdf) - sql_time
+- [Lecture 16](assets/16.pharmacies_er.pdf) - pharmacies_er
+- [Lecture 17](assets/17.midtermCSC370_old_er_to_tables_sol.pdf) - midtermCSC370_old_er_to_tables_sol
+- [Lecture 18](assets/18.midtermCSC370_old.pdf) - midtermCSC370_old
+- [Lecture 19](assets/19.midterm_review.pdf) - midterm_review
+- [Lecture 20](assets/20.midterm-review-handwritten.pdf) - midterm-review-handwritten
+- [Lecture 21](assets/21.midtermCSC370_old_solQ3.pdf) - midtermCSC370_old_solQ3
+- [Lecture 22](assets/22.sql_window.pdf) - sql_window
+- [Lecture 23](assets/23.storage.pdf) - storage
+- [Lecture 24](assets/24.btrees.pdf) - btrees
+- [Lecture 25](assets/25.queryeval.pdf) - queryeval
+- [Lecture 26](assets/26.concurrency.pdf) - concurrency
+- [Lecture 27](assets/27.concurrency_lock_types.pdf) - concurrency_lock_types
+- [Lecture 28](assets/28.recovery.pdf) - recovery
+- [Lecture 29](assets/29.bcnf.pdf) - bcnf
+- [Lecture 30](assets/30.Final Exam - CSC 370 - Old - Sol.pdf) - Final Exam - CSC 370 - Old - Sol
+- [Lecture 31](assets/31.Final Exam - CSC 370 - Old.pdf) - Final Exam - CSC 370 - Old
+- [Lecture 32](assets/32.review.pdf) - review
 
 # Entity-Relationship Model
 
